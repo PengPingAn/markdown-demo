@@ -1,0 +1,62 @@
+.md-collapse {
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 1em 0;
+  transition: all 1.4s ease;
+  &-icon {
+    transition: transform 0.3s ease;
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background-size: contain;
+    transform: scale(0.7) rotate(-90deg);
+    background-repeat: no-repeat;
+  }
+}
+
+.md-collapse-title {
+  padding: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.2s ease;
+  &:hover {
+    color: #0d85e7;
+  }
+}
+
+.md-collapse-body {
+  border-radius: 6px;
+  height: 0;
+  overflow: hidden;
+  will-change: height;
+  transition: height 0.5s cubic-bezier(0.25, 1.5, 0.5, 1);
+}
+
+.md-collapse-body.open {
+  background: #ffc0cb33;
+}
+
+.md-collapse-icon.rotate {
+  transform: scale(0.7) rotate(0deg);
+}
+
+.md-collapse-inner {
+  padding: 10px;
+  background: var(--md-collapse-inner-bg-color);
+  animation: bounceIn 0.3s ease;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scaleY(0.95);
+  }
+  50% {
+    transform: scaleY(1.05);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}

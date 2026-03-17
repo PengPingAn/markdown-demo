@@ -1,0 +1,102 @@
+.m-block {
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 20px;
+  padding: 20px;
+  margin: 20px 0;
+  span {
+    font-size: 1rem;
+  }
+  iframe {
+    border: 0;
+    width: 1.5em;
+    height: 1.5em;
+  }
+  svg:root {
+    color: rgb(245, 158, 11) !important;
+  }
+}
+
+.warning {
+  background: var(--warning-bg-color);
+  border: solid 1px rgb(252 211 77);
+}
+
+.error {
+  background: var(--error-bg-color);
+  border: solid 1px rgb(252 77 77);
+}
+
+.md-a-img {
+  width: 17px;
+  vertical-align: sub;
+  pointer-events: none;
+  background: transparent !important;
+}
+
+.m-admonition {
+  position: relative;
+  background: transparent;
+  padding: 1rem 1rem 1rem 1.25rem;
+  border-radius: 6px;
+  margin: 1em 0;
+  &::before {
+    content: "";
+    position: absolute;
+    top: 1rem;
+    bottom: 1rem;
+    left: 0;
+    width: 3px;
+    background-color: #448aff;
+    border-radius: 2px;
+  }
+  .m-admonition-title {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #2979ff;
+    margin-bottom: 0.25em;
+    gap: 0.4em;
+    .m-admonition-icon {
+      font-size: 1em;
+      line-height: 1;
+      transform: scale(0.8);
+    }
+    .m-admonition-label {
+      font-size: 1em;
+    }
+  }
+  .m-admonition-body {
+    color: var(--font-color);
+    line-height: 1.5;
+  }
+}
+
+.alerts {
+  &-note::before {
+    background-color: #448aff;
+  }
+  &-tip::before {
+    background-color: #00c853;
+  }
+  &-warning::before {
+    background-color: #ffa000;
+  }
+  &-danger::before {
+    background-color: #d32f2f;
+  }
+  &-note .m-admonition-title {
+    color: #2979ff;
+  }
+  &-tip .m-admonition-title {
+    color: #00c853;
+  }
+  &-warning .m-admonition-title {
+    color: #e6cc68;
+  }
+  &-danger .m-admonition-title {
+    color: #d32f2f;
+  }
+}

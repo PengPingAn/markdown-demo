@@ -1,0 +1,36 @@
+.custom-quotation {
+  position: relative;
+  background: var(--md-quotation-bg-color);
+  width: 100%;
+  font-style: italic;
+  color: var(--font-color);
+  margin: 1.5em 0;
+  padding: 1rem 2em;
+  display: flex;
+  justify-content: center;
+  .quotation-body {
+    margin: 0 1em;
+    line-height: 2;
+    display: inline;
+    position: relative;
+  }
+  .quotation-body::before,
+  .quotation-body::after {
+    content: "";
+    font-size: 2rem;
+    color: #aaa;
+    user-select: none;
+    pointer-events: none;
+    line-height: 1;
+    vertical-align: middle;
+    display: inline-block;
+  }
+  .quotation-body::before {
+    content: "“";
+    margin-right: 0.1em;
+  }
+  .quotation-body::after {
+    content: "”";
+    margin-left: 0.1em;
+  }
+}

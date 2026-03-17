@@ -1,0 +1,150 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foot-bg-color: #eef5fa;
+    --background-head-color: #f0f8ffa3;
+    --font-color: #000000;
+    --tooltip-bg-color: #000000;
+    --paper-card-bg-color: #ffffff;
+    --paper-card-border-color: #000;
+    --modal-bg-color: #f9f3f3f7;
+    --warning-bg-color: rgb(255 251 235);
+    --error-bg-color: rgb(255 235 235);
+    --input-border-rgba1: rgba(79, 70, 229, 0.4);
+    --input-border-rgba2: rgba(79, 70, 229, 0);
+    --hover-card-bg-color: #ffffff;
+    --md-collapse-inner-bg-color: #fff0f5;
+    --skeleton-gradient-color: linear-gradient(90deg, #f0f0f0 25%, #e5e5e5 50%, #f0f0f0 75%);
+    --foreground: 222.2 84% 4.9%;
+    --md-quotation-bg-color: #fbb0eea9;
+    --spot1-rgb: 88, 146, 246;
+    --spot2-rgb: 131, 167, 234;
+    --spot3-rgb: 255, 200, 220;
+    --spot4-rgb: 200, 220, 255;
+    --white-start: 255, 255, 255;
+    --white-end: 255, 255, 255;
+    --head-rgb: 255, 255, 255;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: rgb(29, 29, 29);
+    --foot-bg-color: #38383a;
+    --background-head-color: #61606072;
+    --font-color: #fff;
+    --tooltip-bg-color: #7e6b6b;
+    --paper-card-bg-color: transparent;
+    --paper-card-border-color: #cfcfcf;
+    --modal-bg-color: #000000e0;
+    --warning-bg-color: transparent;
+    --error-bg-color: transparent;
+    --input-border-rgba1: rgba(232, 232, 244, 0.4);
+    --input-border-rgba2: rgba(234, 233, 249, 0);
+    --hover-card-bg-color: #1a1919de;
+    --skeleton-gradient-color: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+    --md-collapse-inner-bg-color: transparent --foreground: 210 40% 98%;
+    --md-quotation-bg-color: #4f605ba9;
+    --spot1-rgb: 70, 90, 140;
+    --spot2-rgb: 90, 110, 160;
+    --spot3-rgb: 120, 80, 90;
+    --spot4-rgb: 120, 100, 70;
+    --white-start: 0, 0, 0;
+    --white-end: 20, 20, 20;
+    --head-rgb: 0, 0, 0;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer utilities {
+  .multi-line-ellipsis {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+    /* 控制显示行数 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 支持动态行数 */
+  .multi-line-ellipsis-2 {
+    -webkit-line-clamp: 2;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .multi-line-ellipsis-4 {
+    -webkit-line-clamp: 4;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .multi-line-ellipsis-3 {
+    -webkit-line-clamp: 3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .font-serif {
+    font-family: 'Noto Serif SC', serif;
+  }
+}
