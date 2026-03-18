@@ -1,14 +1,14 @@
-
 `inline code`
 
 ```javascript
-const route = useRoute()
+const route = useRoute();
 ```
 
 ```javascript
 <script setup lang="ts">
 const route = useRoute()
 const albumIdParam = computed(() => route.params.id as string)
+@linkCard[标题][https://q2.itc.cn/q_70/images03/20241013/6fe9a539a055473b8677c734558b462f.jpeg][这是一个描述](https://icon-sets.iconify.design/?query=link&search-page=1)
 
 const items = ref<any[]>([])
 const currentImageIndex = ref<number>(0)
@@ -87,23 +87,21 @@ const openImageDetail = (index: number) => {
 }
 const closeDetail = () => (showDetail.value = false)
 </script>
-
-
 ```
 
-``` ts
+```ts
 ==落日西沉，炊烟袅袅。==
 ```
 
 ==落日西沉，炊烟袅袅。==
 
-``` ts
+```ts
 @linkCard[标题][https://q2.itc.cn/q_70/images03/20241013/6fe9a539a055473b8677c734558b462f.jpeg][这是一个描述](https://icon-sets.iconify.design/?query=link&search-page=1)
 ```
 
 @linkCard[标题][https://q2.itc.cn/q_70/images03/20241013/6fe9a539a055473b8677c734558b462f.jpeg][这是一个描述](https://icon-sets.iconify.design/?query=link&search-page=1)
 
-``` ts
+```ts
 :::collapse title=点我展开内容
 ==春风若有怜花意，可否许我再少年？==
 
@@ -121,7 +119,7 @@ const closeDetail = () => (showDetail.value = false)
 - 列表
   :::
 
-``` ts
+```ts
 :::carousel
 https://ss3.baidu.com/9fo3dSag_xI4khGko9WTAnF6hhy/zhidao/pic/item/18d8bc3eb13533fae0a4ef61acd3fd1f41345b6a.jpg
 https://pic4.zhimg.com/v2-57ed22547faf8635adb245964aee8a0b_r.jpg
@@ -139,7 +137,7 @@ https://p7.itc.cn/q_70/images03/20240101/469a5b2a96a346318d190fd0acfe20c3.jpeg
 https://pic1.zhimg.com/80/v2-2464893e23ed8c3d2760b446015ef8e8_r.jpg
 :::
 
-``` ts
+```ts
 :::card url=https://www.disneyplus.com/en-jp/browse/entity-b29d5852-c94c-4d05-beb9-bfd2f227fd12 title="血谜拼图（나인 퍼즐）" image=https://image.tmdb.org/t/p/w500/xWH7Tyg5FXh90hN3IPUeBYpprqk.jpg rating=7
 异罗是叔叔死亡的唯一目击者，她为了查明案件真相而成为犯罪侧写师。重案组刑警瀚泉执着地怀疑异罗就是嫌犯。伴随着时隔十年送达的拼图，命案再度发生。异罗及瀚泉能阻止这起拼图连环杀人案吗？
 :::
@@ -149,7 +147,7 @@ https://pic1.zhimg.com/80/v2-2464893e23ed8c3d2760b446015ef8e8_r.jpg
 异罗是叔叔死亡的唯一目击者，她为了查明案件真相而成为犯罪侧写师。重案组刑警瀚泉执着地怀疑异罗就是嫌犯。伴随着时隔十年送达的拼图，命案再度发生。异罗及瀚泉能阻止这起拼图连环杀人案吗？
 :::
 
-``` ts
+```ts
 > [!NOTE]
 > 用于传达有助于理解但非关键的信息，适合补充背景、提示或建议。
 
@@ -169,7 +167,7 @@ https://pic1.zhimg.com/80/v2-2464893e23ed8c3d2760b446015ef8e8_r.jpg
 > [!Danger]
 > 用于突出极其重要或危险的信息，即使用户快速浏览也必须注意到。
 
-``` ts
+```ts
 :::video src=https://player.bilibili.com/player.html?isOutside=true&aid=626357031&bvid=BV1yt4y1Q7SS&cid=210738676&p=1&autoplay=false
 敢杀我的马？
 :::
@@ -179,19 +177,19 @@ https://pic1.zhimg.com/80/v2-2464893e23ed8c3d2760b446015ef8e8_r.jpg
 敢杀我的马？
 :::
 
-``` ts
+```ts
 ||你知道的太多了。||
 ```
 
 ||你知道的太多了。||
 
-``` ts
+```ts
 @Pingan[随机头像API](https://api.multiavatar.com/_随机数.png)
 ```
 
 @Pingan[随机头像 API](https://api.multiavatar.com/_随机数.png)
 
-``` ts
+```ts
 ::: warning
 warning
 :::
@@ -209,7 +207,7 @@ warning
 error
 :::
 
-``` ts
+```ts
 :::textflip title=我一定会找回你的
 守得云开见月明 我们会白头偕老的
 :::
@@ -219,13 +217,13 @@ error
 守得云开见月明 我们会白头偕老的
 :::
 
-``` ts
+```ts
 @size[25px]{这是一段文字} 这是默认大小
 ```
 
 @size[25px]{这是一段文字} 这是默认大小
 
-``` ts
+```ts
 ::: quotation
 这是一段引用回忆的文字。(默认颜色)
 可能很长，包含情绪、反思，像日记一样。
@@ -247,7 +245,7 @@ error
 可能很长，包含情绪、反思，像日记一样。
 :::
 
-``` ts
+```ts
 [__Magic UI下划线语法]
 
 [==Magic UI高亮语法]
