@@ -177,6 +177,18 @@ https://pic1.zhimg.com/80/v2-2464893e23ed8c3d2760b446015ef8e8_r.jpg
 敢杀我的马？
 :::
 
+:::video src=https://www.youtube.com/embed/LmZD-TU96q4?si=X9ox7r2tjK-n7Zc4
+油管视频
+:::
+
+:::video src=https://x.com/__oQuery/status/2034516604726427758
+推特 推文
+:::
+
+:::video src=https://x.com/just_chitraa/status/2034271124461379853
+推特 推文
+:::
+
 ```ts
 ||你知道的太多了。||
 ```

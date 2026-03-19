@@ -304,79 +304,79 @@ export const markdownConfig = (md) => {
   });
 
   //视频插件
-  md.block.ruler.before("fence", "video", (state, startLine, endLine, silent) => {
-    const start = state.bMarks[startLine] + state.tShift[startLine];
-    const max = state.eMarks[startLine];
-    const line = state.src.slice(start, max).trim();
+  // md.block.ruler.before("fence", "video", (state, startLine, endLine, silent) => {
+  //   const start = state.bMarks[startLine] + state.tShift[startLine];
+  //   const max = state.eMarks[startLine];
+  //   const line = state.src.slice(start, max).trim();
 
-    if (!line.startsWith(":::video")) return false;
+  //   if (!line.startsWith(":::video")) return false;
 
-    // 解析参数
-    const attrRegex = /(\w+)=([^\s]+)/g;
-    const attrs = {};
-    let match;
-    while ((match = attrRegex.exec(line)) !== null) {
-      attrs[match[1]] = match[2];
-    }
+  //   // 解析参数
+  //   const attrRegex = /(\w+)=([^\s]+)/g;
+  //   const attrs = {};
+  //   let match;
+  //   while ((match = attrRegex.exec(line)) !== null) {
+  //     attrs[match[1]] = match[2];
+  //   }
 
-    if (!attrs.src) return false;
+  //   if (!attrs.src) return false;
 
-    let nextLine = startLine + 1;
-    const lines = [];
-    while (nextLine < endLine) {
-      const pos = state.bMarks[nextLine] + state.tShift[nextLine];
-      const maxPos = state.eMarks[nextLine];
-      const text = state.src.slice(pos, maxPos).trim();
+  //   let nextLine = startLine + 1;
+  //   const lines = [];
+  //   while (nextLine < endLine) {
+  //     const pos = state.bMarks[nextLine] + state.tShift[nextLine];
+  //     const maxPos = state.eMarks[nextLine];
+  //     const text = state.src.slice(pos, maxPos).trim();
 
-      if (text === ":::") break;
+  //     if (text === ":::") break;
 
-      lines.push(text);
-      nextLine++;
-    }
+  //     lines.push(text);
+  //     nextLine++;
+  //   }
 
-    if (silent) return true;
+  //   if (silent) return true;
 
-    state.line = nextLine + 1;
+  //   state.line = nextLine + 1;
 
-    const description = lines.join("\n").trim();
+  //   const description = lines.join("\n").trim();
 
-    const isExternal =
-      /^https?:\/\//.test(attrs.src) && /(youtube\.com|bilibili\.com|vimeo\.com)/.test(attrs.src);
+  //   const isExternal =
+  //     /^https?:\/\//.test(attrs.src) && /(youtube\.com|bilibili\.com|vimeo\.com)/.test(attrs.src);
 
-    const player = isExternal
-      ? `<iframe
-               src="${attrs.src}"
-               class="md-video-iframe"
-               frameborder="0"
-               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-               allowfullscreen
-             ></iframe>`
-      : `<video
-               src="${attrs.src}"
-               ${attrs.poster ? `poster="${attrs.poster}"` : ""}
-               controls
-               preload="metadata"
-               class="md-video"
-             ></video>`;
+  //   const player = isExternal
+  //     ? `<iframe
+  //              src="${attrs.src}"
+  //              class="md-video-iframe"
+  //              frameborder="0"
+  //              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  //              allowfullscreen
+  //            ></iframe>`
+  //     : `<video
+  //              src="${attrs.src}"
+  //              ${attrs.poster ? `poster="${attrs.poster}"` : ""}
+  //              controls
+  //              preload="metadata"
+  //              class="md-video"
+  //            ></video>`;
 
-    const html = `
-          <div class="md-video-wrapper">
-            ${player}
-            ${
-              description
-                ? `<div class="md-video-description">—— ${md.utils.escapeHtml(
-                    description,
-                  )} ——</div>`
-                : ""
-            }
-          </div>
-        `;
+  //   const html = `
+  //         <div class="md-video-wrapper">
+  //           ${player}
+  //           ${
+  //             description
+  //               ? `<div class="md-video-description">—— ${md.utils.escapeHtml(
+  //                   description,
+  //                 )} ——</div>`
+  //               : ""
+  //           }
+  //         </div>
+  //       `;
 
-    const token = state.push("html_block", "", 0);
-    token.content = html;
+  //   const token = state.push("html_block", "", 0);
+  //   token.content = html;
 
-    return true;
-  });
+  //   return true;
+  // });
 
   //电影/电视链接卡片
   md.block.ruler.before("fence", "card", (state, startLine, endLine, silent) => {

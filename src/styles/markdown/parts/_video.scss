@@ -27,3 +27,21 @@
   color: #666;
   font-style: italic;
 }
+
+/* x 卡片特殊调整 */
+.md-video-wrapper:has(.twitter-embed-placeholder) {
+  aspect-ratio: auto !important;
+}
+
+.md-video-wrapper:has(.twitter-embed-placeholder) .md-video-description {
+  padding-top: 0 !important;
+}
+
+.twitter-embed-placeholder {
+  min-height: 200px;
+  width: 100%;
+  max-width: 550px;
+  margin: 0 auto;
+  display: block;
+  background: transparent;
+}
