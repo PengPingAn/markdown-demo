@@ -18,7 +18,7 @@ blockquote {
 }
 
 blockquote::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 0;
@@ -148,23 +148,23 @@ li {
   height: 17px;
   margin-left: 4px;
   background-color: #000000; // 默认颜色
-  mask-image: url('@/assets/svg/mingcute.svg'); // 替换为你的实际路径
+  mask-image: url("@/assets/svg/mingcute.svg"); // 替换为你的实际路径
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: contain;
-  -webkit-mask-image: url('@/assets/svg/mingcute.svg'); // 兼容 Safari
+  -webkit-mask-image: url("@/assets/svg/mingcute.svg"); // 兼容 Safari
 }
 
 /* 暗黑模式适配 */
 
 .dark .polaris-icon {
   background-color: #ffffff;
-  mask-image: url('@/assets/svg/mingcute.svg');
-  -webkit-mask-image: url('@/assets/svg/mingcute.svg');
+  mask-image: url("@/assets/svg/mingcute.svg");
+  -webkit-mask-image: url("@/assets/svg/mingcute.svg");
 }
 
 .hover-link::before {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0px;
   left: 0;
@@ -407,7 +407,7 @@ li {
 
 /* 添加加载失败指示器 */
 .link-avatar::after {
-  content: '❌';
+  content: "❌";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -593,7 +593,7 @@ li {
     user-select: none;
     width: 2rem;
     height: 2rem;
-    background-color: rgba(184, 182, 182, 0.904);
+    background-color: rgb(184 182 182 / 29%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -856,7 +856,7 @@ li {
     z-index: 1;
 
     &::after {
-      content: '';
+      content: "";
       display: table;
       clear: both;
     }
@@ -906,7 +906,7 @@ li {
   margin: 1em 0;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 1rem;
     bottom: 1rem;
@@ -1077,7 +1077,7 @@ li {
 
   .quotation-body::before,
   .quotation-body::after {
-    content: '';
+    content: "";
     font-size: 2rem;
     color: #aaa;
     user-select: none;
@@ -1090,14 +1090,14 @@ li {
   }
 
   .quotation-body::before {
-    content: '“';
+    content: "“";
     margin-right: 0.1em;
     // position: absolute;
     // left: -2.3rem;
   }
 
   .quotation-body::after {
-    content: '”';
+    content: "”";
     margin-left: 0.1em;
   }
 }
@@ -1108,7 +1108,7 @@ li {
 }
 
 .mu-underline::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   bottom: -2px; /* 下划线距离文字的距离 */

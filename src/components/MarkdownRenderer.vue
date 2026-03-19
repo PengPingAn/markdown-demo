@@ -390,8 +390,6 @@ onUnmounted(() => {
   opacity: 0;
   transition: opacity 0.15s;
   pointer-events: none;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
 }
 .markdown-body :deep(.code-block-copy.copied .copy-feedback) {
   opacity: 1;
