@@ -851,8 +851,8 @@ export const markdownConfig = (md) => {
     const icon = type.includes("error") ? errorIcon : warningIcon;
     // console.log('强制触发规则!--', token.attrGet('class').split(' '));
     return `<div class="${token.attrGet("class")}">
-                    <iframe src="${icon}"></iframe>
-                    <div class="admonition-content">`;
+              <img src="${icon}" alt="icon" style="width: 20px; height: 20px;">
+            <div class="admonition-content">`;
   };
   //警告/错误结尾渲染
   md.renderer.rules[`${TOKEN_PREFIX}close`] = () => "</div></div>";
