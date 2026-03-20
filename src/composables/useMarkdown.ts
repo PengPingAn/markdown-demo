@@ -18,24 +18,29 @@ export function useMarkdown() {
               lang,
               theme: "vitesse-light",
             });
+            // 在 <pre 标签中插入 data-language 属性
+            const preWithLang = highlightedCode.replace(
+              /<pre(\s|>)/,
+              `<pre data-language="${lang}"$1`,
+            );
             return `
-              <div class="code-block-wrapper">
-                <div class="code-block-container">
-                  ${highlightedCode}
-                </div>
-                <div class="code-block-expand-wrapper">
-                  <button class="code-block-expand-btn"><span class="icon-park--to-bottom"></span> 展开</button>
-                </div>
-              </div>
-            `;
+        <div class="code-block-wrapper">
+          <div class="code-block-container">
+            ${preWithLang}
+          </div>
+          <div class="code-block-expand-wrapper">
+            <button class="code-block-expand-btn"><span class="icon-park--to-bottom"></span> 展开</button>
+          </div>
+        </div>
+      `;
           } else {
-            return `<pre><code class="language-${lang || "text"}">${md.utils.escapeHtml(
+            return `<pre data-language="${lang || "text"}" class="shiki"><code class="language-${lang || "text"}">${md.utils.escapeHtml(
               code,
             )}</code></pre>`;
           }
         } catch (e) {
           console.error("Shiki highlighting failed:", e);
-          return `<pre><code class="language-${lang || "text"}">${md.utils.escapeHtml(
+          return `<pre data-language="${lang || "text"}" class="shiki"><code class="language-${lang || "text"}">${md.utils.escapeHtml(
             code,
           )}</code></pre>`;
         }
