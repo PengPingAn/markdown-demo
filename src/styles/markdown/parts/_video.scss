@@ -37,11 +37,23 @@
   padding-top: 0 !important;
 }
 
+/* 推特占位符基础样式 */
+/* 推特占位符容器（只负责布局，无背景色） */
 .twitter-embed-placeholder {
-  min-height: 200px;
-  width: 100%;
+  min-height: 250px; /* 可根据需要调整，例如 350px 以更好匹配视频卡片 */
   max-width: 550px;
   margin: 0 auto;
-  display: block;
-  background: transparent;
+  position: relative;
+  overflow: hidden;
+  background: transparent; /* 背景透明，骨架屏由内部元素负责 */
+  border-radius: 12px;
+}
+
+@keyframes skeleton-loading-dom {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }

@@ -1,4 +1,3 @@
-// composables/useMarkdown.ts
 import MarkdownIt from "markdown-it";
 import DOMPurify from "dompurify";
 import { getInitPromise, getHighlighterSync } from "@/plugins/markdown/highlighter";
@@ -47,12 +46,13 @@ export function useMarkdown() {
     return md;
   };
 
-  const render = async (source: string) => {
+  const render = async (source: string): Promise<string> => {
     await getInitPromise();
     const md = createMarkdownIt();
     const rawHtml = md.render(source);
-    // 注意：iframe 安全配置在此进行
-    const cleanHtml = DOMPurify.sanitize(rawHtml, {
+
+    // 基础净化配置
+    const purifyConfig = {
       ADD_TAGS: ["iframe", "blockquote", "script", "div"],
       ADD_ATTR: [
         "style",
@@ -68,9 +68,12 @@ export function useMarkdown() {
         "title",
         "data-tweet-id",
         "data-tweet-url",
+        "target",
+        "rel",
       ],
-    });
-    return cleanHtml;
+    };
+
+    return DOMPurify.sanitize(rawHtml, purifyConfig);
   };
 
   return {

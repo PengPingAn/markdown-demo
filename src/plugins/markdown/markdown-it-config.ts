@@ -431,6 +431,7 @@ export const markdownConfig = (md) => {
         ratingNum = r;
       }
     }
+    const ratingHtml = ratingNum ? `<span class="m-card-rating">★ ${ratingNum}</span>` : "";
 
     const html = `
           <a class="m-card" href="${url}" target="_blank" rel="noopener noreferrer">
@@ -442,7 +443,7 @@ export const markdownConfig = (md) => {
             <div class="m-card-content">
               ${
                 title
-                  ? `<div class="m-card-title-row"><div class="m-card-title">${title}</div></div>`
+                  ? `<div class="-title-row"><div class="m-card-title">${title}${ratingHtml}</div> </div>`
                   : ""
               }
               ${desc ? `<div class="m-card-desc">${desc}</div>` : ""}

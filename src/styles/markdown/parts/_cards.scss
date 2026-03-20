@@ -82,7 +82,8 @@
   align-items: center;
   transition: all 0.2s ease;
   cursor: pointer;
-  background: radial-gradient(
+  background:
+    radial-gradient(
       circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
       var(--main-gradient-color) 0%,
       var(--main-gradient-color) 30%,
@@ -176,14 +177,24 @@
     }
   }
   &-cover {
-    width: 60px;
-    height: 80px;
+    min-height: 130px;
     background-size: cover;
     background-position: center;
     flex-shrink: 0;
     border-right: 1px solid #eee;
-    margin: 1rem;
-    border-radius: 5px;
+    position: relative;
+    width: 100px;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 60px;
+      height: 100%;
+      background: linear-gradient(to left, rgb(240 239 239), transparent);
+      pointer-events: none;
+    }
   }
   &-content {
     padding: 12px;
@@ -199,6 +210,9 @@
   &-title {
     font-weight: bold;
     font-size: 1em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   &-desc {
     font-size: 0.8em;
@@ -225,5 +239,9 @@
     display: flex;
     align-items: center;
     gap: 0.4em;
+  }
+  &-rating {
+    font-size: 0.7rem;
+    color: rgb(251, 146, 60);
   }
 }

@@ -57,6 +57,38 @@ const waitForContainer = (element: Element, maxAttempts = 10): Promise<void> => 
   });
 };
 
+/**
+ * 创建骨架屏 DOM 元素
+ */
+const createSkeleton = (): HTMLElement => {
+  const skeleton = document.createElement("div");
+  skeleton.className = "twitter-skeleton-dom";
+  skeleton.style.cssText = `
+    position: absolute;
+    top: -1rem;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #f0f2f5;
+    border-radius: 12px;
+    overflow: hidden;
+  `;
+
+  const animation = document.createElement("div");
+  animation.className = "skeleton-animation-dom";
+  animation.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    animation: skeleton-loading-dom 1.5s infinite;
+  `;
+  skeleton.appendChild(animation);
+  return skeleton;
+};
+
 export function useTwitterEmbed(containerRef: { value: HTMLElement | null }) {
   const isScriptLoaded = ref(false);
   const error = ref<string | null>(null);
@@ -87,61 +119,76 @@ export function useTwitterEmbed(containerRef: { value: HTMLElement | null }) {
       return;
     }
 
-    for (const placeholder of placeholders) {
+    // 1. 为所有占位符清空内容并插入骨架屏
+    const items: { placeholder: Element; tweetId: string; tweetUrl: string }[] = [];
+    placeholders.forEach((placeholder) => {
       const tweetId = placeholder.getAttribute("data-tweet-id");
       const tweetUrl = placeholder.getAttribute("data-tweet-url");
       if (!tweetId) {
         console.warn("[Twitter] 占位符缺少 data-tweet-id", placeholder);
-        continue;
+        return;
       }
-
-      // 清空占位符，确保干净
       placeholder.innerHTML = "";
+      const skeleton = createSkeleton();
+      placeholder.appendChild(skeleton);
+      items.push({ placeholder, tweetId, tweetUrl });
+    });
 
-      await waitForContainer(placeholder);
+    // 2. 等待所有容器可见（可并行等待）
+    await Promise.all(items.map((item) => waitForContainer(item.placeholder)));
 
-      let retries = 3;
-      let success = false;
-      while (retries > 0 && !success) {
-        try {
-          console.log(`[Twitter] 尝试渲染推文 ${tweetId}，剩余重试 ${retries}`);
-          // 仅使用 align 选项，与手动调用完全一致
-          await window.twttr.widgets.createTweet(tweetId, placeholder, {
-            align: "center",
-          });
-
-          // 等待推特完成渲染（约500ms）
-          await new Promise((resolve) => setTimeout(resolve, 500));
-
-          // 验证是否成功渲染出卡片（检查 iframe 或特定类）
-          const hasIframe = placeholder.querySelector("iframe");
-          const hasTweetClass = placeholder.querySelector(".twitter-tweet-rendered");
-          if (hasIframe || hasTweetClass) {
-            console.log(`[Twitter] 推文 ${tweetId} 渲染成功，检测到 iframe`);
-            success = true;
-          } else {
-            console.warn(`[Twitter] 推文 ${tweetId} 可能渲染为链接卡片，准备重试`);
-            throw new Error("可能渲染为链接卡片");
-          }
-        } catch (err) {
-          console.error(`[Twitter] 推文 ${tweetId} 渲染失败 (重试剩余 ${retries})`, err);
-          retries--;
-          if (retries > 0) {
-            placeholder.innerHTML = ""; // 清空后重试
+    // 3. 并发执行所有推文渲染
+    const results = await Promise.allSettled(
+      items.map(async ({ placeholder, tweetId, tweetUrl }) => {
+        let retries = 3;
+        while (retries > 0) {
+          try {
+            await window.twttr.widgets.createTweet(tweetId, placeholder, {
+              align: "center",
+            });
+            await new Promise((resolve) => setTimeout(resolve, 500)); // 等待渲染
+            const hasIframe = placeholder.querySelector("iframe");
+            const hasTweetClass = placeholder.querySelector(".twitter-tweet-rendered");
+            if (hasIframe || hasTweetClass) {
+              // 成功：移除骨架屏
+              const skeleton = placeholder.querySelector(".twitter-skeleton-dom");
+              if (skeleton) skeleton.remove();
+              return { success: true, tweetId };
+            } else {
+              throw new Error("可能渲染为链接卡片");
+            }
+          } catch (err) {
+            retries--;
+            if (retries === 0) {
+              // 失败：移除骨架屏，显示错误信息
+              const skeleton = placeholder.querySelector(".twitter-skeleton-dom");
+              if (skeleton) skeleton.remove();
+              placeholder.innerHTML = `
+              <div style="padding: 1em; border: 1px solid #ccc; border-radius: 12px; background: #f9f9f9; text-align: center;">
+                <p style="margin: 0 0 0.5em; color: #666;">😵 推文加载失败，请稍后重试</p>
+                <a href="${tweetUrl}" target="_blank" rel="noopener noreferrer" style="color: #1da1f2;">在 Twitter 上查看</a>
+              </div>
+            `;
+              return { success: false, tweetId };
+            }
+            // 重试前重新插入骨架屏（因为 createTweet 可能覆盖了内容）
+            placeholder.innerHTML = "";
+            const newSkeleton = createSkeleton();
+            placeholder.appendChild(newSkeleton);
             await new Promise((resolve) => setTimeout(resolve, 300));
           }
         }
-      }
+      }),
+    );
 
-      if (!success) {
-        placeholder.innerHTML = `
-          <div style="padding: 1em; border: 1px solid #ccc; border-radius: 4px; background: #f9f9f9; text-align: center;">
-            <p style="margin: 0 0 0.5em; color: #666;">😵 推文加载失败，请稍后重试</p>
-            <a href="${tweetUrl}" target="_blank" rel="noopener noreferrer" style="color: #1da1f2;">在 Twitter 上查看</a>
-          </div>
-        `;
+    // 4. 可选：统一处理结果日志
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled") {
+        console.log(`[Twitter] 推文 ${items[index].tweetId} 处理完成`, result.value);
+      } else {
+        console.error(`[Twitter] 推文 ${items[index].tweetId} 处理异常`, result.reason);
       }
-    }
+    });
   };
 
   return {
