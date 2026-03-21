@@ -10,10 +10,11 @@ export function useMarkdown() {
       breaks: true,
       linkify: true,
       typographer: true,
-      highlight: (code, lang) => {
+      highlight: (code:any, lang:any) => {
         try {
           const highlighter = getHighlighterSync();
-          if (lang && highlighter.getLoadedLanguages().includes(lang)) {
+        
+          if (lang /*&& highlighter.getLoadedLanguages().includes(lang)*/) {
             const highlightedCode = highlighter.codeToHtml(code, {
               lang,
               theme: "vitesse-light",
@@ -24,15 +25,15 @@ export function useMarkdown() {
               `<pre data-language="${lang}"$1`,
             );
             return `
-        <div class="code-block-wrapper">
-          <div class="code-block-container">
-            ${preWithLang}
-          </div>
-          <div class="code-block-expand-wrapper">
-            <button class="code-block-expand-btn"><span class="icon-park--to-bottom"></span> 展开</button>
-          </div>
-        </div>
-      `;
+              <div class="code-block-wrapper">
+                <div class="code-block-container">
+                  ${preWithLang}
+                </div>
+                <div class="code-block-expand-wrapper">
+                  <button class="code-block-expand-btn"><span class="icon-park--to-bottom"></span> 展开</button>
+                </div>
+              </div>
+            `;
           } else {
             return `<pre data-language="${lang || "text"}" class="shiki"><code class="language-${lang || "text"}">${md.utils.escapeHtml(
               code,

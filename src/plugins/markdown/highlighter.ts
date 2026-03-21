@@ -29,6 +29,7 @@ export async function initHighlighter() {
           "vue",
           "scss",
           "c#",
+          "text"
         ],
       });
       return highlighter;
