@@ -16,6 +16,9 @@ export async function initHighlighter() {
           "andromeeda",
           "github-light",
           "nord",
+          "aurora-x",
+          "ayu-light",
+          "catppuccin-latte",
         ],
         langs: [
           "javascript",
@@ -29,7 +32,8 @@ export async function initHighlighter() {
           "vue",
           "scss",
           "c#",
-          "text"
+          "text",
+          "python",
         ],
       });
       return highlighter;

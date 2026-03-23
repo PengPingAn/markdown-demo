@@ -183,3 +183,21 @@ p code {
   border-radius: 3px;
   font-size: 0.9em;
 }
+
+.shiki code {
+  counter-reset: line; /* 初始化计数器 */
+}
+
+.shiki code .line {
+  counter-increment: line; /* 每遇到一个 .line 元素，计数器加 1 */
+}
+
+.shiki code .line::before {
+  content: counter(line); /* 显示计数器的值作为行号 */
+  display: inline-block;
+  width: 1rem;
+  margin-right: 1rem;
+  text-align: right;
+  color: #6e6e6e; /* 行号颜色 */
+  user-select: none; /* 防止行号被选中 */
+}

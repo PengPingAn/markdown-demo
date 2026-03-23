@@ -3,6 +3,16 @@ import DOMPurify from "dompurify";
 import { getInitPromise, getHighlighterSync } from "@/plugins/markdown/highlighter";
 import { setupMarkdownPlugins } from "@/plugins/markdown";
 
+const languageThemeMap: Record<string, string> = {
+  ts: "vitesse-light", // TypeScript 使用浅色主题
+  js: "vitesse-light", // JavaScript 也用浅色
+  py: "github-dark", // Python 用深色主题
+  python: "github-dark",
+  html: "vitesse-light",
+  css: "vitesse-light",
+  // 其他语言...
+};
+
 export function useMarkdown() {
   const createMarkdownIt = () => {
     const md = new MarkdownIt({
@@ -10,14 +20,18 @@ export function useMarkdown() {
       breaks: true,
       linkify: true,
       typographer: true,
-      highlight: (code:any, lang:any) => {
+      highlight: (code: any, lang: any) => {
         try {
+          // 修复空白行问题：去除末尾换行符
+          const cleanCode = code.replace(/\n$/, "");
           const highlighter = getHighlighterSync();
-        
-          if (lang /*&& highlighter.getLoadedLanguages().includes(lang)*/) {
-            const highlightedCode = highlighter.codeToHtml(code, {
+
+          if (lang) {
+            const theme = languageThemeMap[lang] || "vitesse-light";
+
+            const highlightedCode = highlighter.codeToHtml(cleanCode, {
               lang,
-              theme: "vitesse-light",
+              theme: "ayu-light",
             });
             // 在 <pre 标签中插入 data-language 属性
             const preWithLang = highlightedCode.replace(
@@ -36,13 +50,14 @@ export function useMarkdown() {
             `;
           } else {
             return `<pre data-language="${lang || "text"}" class="shiki"><code class="language-${lang || "text"}">${md.utils.escapeHtml(
-              code,
+              cleanCode,
             )}</code></pre>`;
           }
         } catch (e) {
           console.error("Shiki highlighting failed:", e);
+          const cleanCode = code.replace(/\n$/, "");
           return `<pre data-language="${lang || "text"}" class="shiki"><code class="language-${lang || "text"}">${md.utils.escapeHtml(
-            code,
+            cleanCode,
           )}</code></pre>`;
         }
       },
@@ -57,7 +72,6 @@ export function useMarkdown() {
     const md = createMarkdownIt();
     const rawHtml = md.render(source);
 
-    // 基础净化配置
     const purifyConfig = {
       ADD_TAGS: ["iframe", "blockquote", "script", "div"],
       ADD_ATTR: [

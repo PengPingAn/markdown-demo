@@ -18,8 +18,12 @@
 
 `inline code`
 
-```javascript
-const route = useRoute();
+```ts
+import type { TemplateOnlyComponent } from '@glimmer/component';
+
+const Greet: TemplateOnlyComponent<{ name: string }> = <template>
+  <p>Hello, {{@name}}!</p>
+</template>
 ```
 
 ```javascript
