@@ -34,3 +34,15 @@
     margin-left: 0.1em;
   }
 }
+.custom-quotation::before {
+  content: "";
+  background:
+    repeating-linear-gradient(105deg, transparent, transparent 2px, #ffffff14 2px, #ffffff14 4px),
+    color-mix(in srgb, oklch(60.956% 0.24321 329.499) 20%, #0000000f);
+  width: 56px;
+  height: 16px;
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translate(-50%) rotate(1.2deg);
+}

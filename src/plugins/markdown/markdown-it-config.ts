@@ -724,6 +724,54 @@ export const markdownConfig = (md) => {
     return true;
   });
 
+  // 静态纸感便签（不可拖拽、不可编辑）
+  md.block.ruler.before("fence", "paper_note", (state, startLine, endLine, silent) => {
+    const start = state.bMarks[startLine] + state.tShift[startLine];
+    const max = state.eMarks[startLine];
+    const line = state.src.slice(start, max).trim();
+
+    // 匹配 ::: paper-note 或 :::paper-note（允许空格）
+    if (!line.match(/^:::\s*paper-note\s*$/)) return false;
+    if (silent) return true;
+
+    let nextLine = startLine + 1;
+    let content = "";
+    let foundEnd = false;
+
+    while (nextLine < endLine) {
+      const lineStart = state.bMarks[nextLine] + state.tShift[nextLine];
+      const lineEnd = state.eMarks[nextLine];
+      const lineText = state.src.slice(lineStart, lineEnd).trim();
+      if (lineText === ":::") {
+        foundEnd = true;
+        break;
+      }
+      content += state.src.slice(lineStart, lineEnd) + "\n";
+      nextLine++;
+    }
+
+    if (!foundEnd) return false;
+
+    // 渲染内部 Markdown（支持加粗、列表等）
+    const innerHtml = md.renderInline(content.trim());
+
+    const token = state.push("html_block", "", 0);
+    token.content = `
+      <div class="paper-note">
+        <div class="pushpin"></div>
+        <div class="note-content">
+          ${innerHtml}
+        </div>
+        <div class="note-signature">
+          ~ 纸短情长
+        </div>
+      </div>
+        `;
+
+    state.line = nextLine + 1;
+    return true;
+  });
+
   // 隐藏语法 将规则提升到最高优先级（在 text 规则之前）
   md.core.ruler.push("tooltip_parser", (state) => {
     const Token = state.Token;
