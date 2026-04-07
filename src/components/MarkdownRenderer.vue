@@ -1,5 +1,5 @@
 <template>
-  <div class="markdown-renderer">
+  <div class="markdown-renderer prose">
     <!-- 可选的切换按钮 -->
     <div v-if="showToggle" class="toggle-bar">
       <button @click="toggleMode" class="toggle-btn">

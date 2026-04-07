@@ -19,11 +19,25 @@ const excalidrawInstances: Record<string, boolean> = {};
 // ----------------------------
 // 自定义语法插件
 // ----------------------------
-export const markdownConfig = (md) => {
+export const markdownConfig = (md, options = {}) => {
   // 安全边界计数器
   const MAX_ITERATIONS = 1000;
   const TOKEN_PREFIX = "my_admonition_";
   const ALLOWED_TYPES = ["warning", "error"];
+
+  const defaultSignatures = [
+    "纸短情长",
+    "备忘随想",
+    "灵感碎片",
+    "今日待办",
+    "随手记",
+    "风过留痕",
+    "读书偶得",
+    "重点标记",
+  ];
+
+  // 如果用户在 options 中提供了自定义签名数组，则使用；否则使用默认
+  const signatures = options.signatures || defaultSignatures;
 
   md.block.ruler.before("fence", "custom_code_block", (state, startLine, endLine, silent) => {
     const start = state.bMarks[startLine] + state.tShift[startLine];
@@ -752,6 +766,9 @@ export const markdownConfig = (md) => {
 
     if (!foundEnd) return false;
 
+    const randomIndex = Math.floor(Math.random() * signatures.length);
+    const signatureText = signatures[randomIndex];
+
     // 渲染内部 Markdown（支持加粗、列表等）
     const innerHtml = md.renderInline(content.trim());
 
@@ -763,11 +780,66 @@ export const markdownConfig = (md) => {
           ${innerHtml}
         </div>
         <div class="note-signature">
-          ~ 纸短情长
+          ~ ${signatureText}
         </div>
       </div>
         `;
 
+    state.line = nextLine + 1;
+    return true;
+  });
+
+  //便签，另一种风格
+  md.block.ruler.before("fence", "sticky_note", (state, startLine, endLine, silent) => {
+    const start = state.bMarks[startLine] + state.tShift[startLine];
+    const max = state.eMarks[startLine];
+    const line = state.src.slice(start, max).trim();
+
+    if (!line.match(/^:::\s*sticky-note\s*$/)) return false;
+    if (silent) return true;
+
+    let nextLine = startLine + 1;
+    let content = "";
+    let foundEnd = false;
+
+    while (nextLine < endLine) {
+      const lineStart = state.bMarks[nextLine] + state.tShift[nextLine];
+      const lineEnd = state.eMarks[nextLine];
+      const lineText = state.src.slice(lineStart, lineEnd).trim();
+      if (lineText === ":::") {
+        foundEnd = true;
+        break;
+      }
+      content += state.src.slice(lineStart, lineEnd) + "\n";
+      nextLine++;
+    }
+
+    if (!foundEnd) return false;
+
+    const randomIndex = Math.floor(Math.random() * signatures.length);
+    const signatureText = signatures[randomIndex];
+
+    // 关键：使用 md.render 渲染内部的完整 Markdown 语法
+    const innerHtml = md.render(content.trim());
+
+    const noteHtml = `
+      <div class="markdown-sticky-note">
+        <div class="note-layer note-layer-bottom"></div>
+        <div class="note-layer note-layer-middle"></div>
+        <div class="note-layer-top">
+          <div class="note-grid-bg"></div>
+          <div class="note-content-wrapper">
+            ${innerHtml}
+          </div>
+          <div class="note-signature">-- ${signatureText}</div>
+          <div class="note-decor-teal"></div>
+          <div class="note-decor-pink"></div>
+        </div>
+      </div>
+    `;
+
+    const token = state.push("html_block", "", 0);
+    token.content = noteHtml;
     state.line = nextLine + 1;
     return true;
   });
