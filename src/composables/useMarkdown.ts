@@ -6,8 +6,8 @@ import { setupMarkdownPlugins } from "@/plugins/markdown";
 const languageThemeMap: Record<string, string> = {
   ts: "vitesse-light", // TypeScript 使用浅色主题
   js: "vitesse-light", // JavaScript 也用浅色
-  py: "github-dark", // Python 用深色主题
-  python: "github-dark",
+  py: "github-light", // Python 用深色主题
+  python: "github-light",
   html: "vitesse-light",
   css: "vitesse-light",
   // 其他语言...
@@ -31,7 +31,7 @@ export function useMarkdown() {
 
             const highlightedCode = highlighter.codeToHtml(cleanCode, {
               lang,
-              theme: "ayu-light",
+              theme,
             });
             // 在 <pre 标签中插入 data-language 属性
             const preWithLang = highlightedCode.replace(

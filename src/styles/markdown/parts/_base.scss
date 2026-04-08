@@ -11,31 +11,52 @@ h5,
 h6 {
   font-size: revert;
   font-weight: revert;
+  margin-top: 2em;
+  margin-bottom: 1em;
 }
 
 blockquote {
   position: relative;
-  padding-left: 1.5em;
+  padding-left: 1em;
   color: #4a4a4a;
   border-left: none !important;
-}
 
-blockquote::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 0.2em;
-  background-color: #6dde9b;
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
-  border-top-right-radius: 6px;
-  border-bottom-right-radius: 6px;
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0.2em;
+    background-color: #6dde9b;
+    border-radius: 6px;
+  }
+
+  p:first-of-type::before {
+    content: "“";
+    font-size: 1.2em;
+    color: #879f91;
+    margin-right: 0.2em;
+    vertical-align: middle;
+  }
+
+  // 最后一个 p 加后引号
+  p:last-of-type::after {
+    content: "”";
+    font-size: 1.2em;
+    color: #879f91;
+    margin-left: 0.2em;
+    vertical-align: middle;
+  }
+
+  p:last-of-type {
+    display: inline;
+  }
 }
 
 p {
-  margin: 0.5rem 0;
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
 }
 
 ul,
@@ -43,9 +64,18 @@ li {
   list-style: initial;
   margin: initial;
   padding: initial;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  &::marker {
+    color: #6dde9b;
+  }
 }
 ul {
   padding-left: 2em;
+}
+
+ol {
+  margin-left: 1rem;
 }
 
 .p-span-tag {

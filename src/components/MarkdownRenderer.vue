@@ -31,6 +31,11 @@ import { useMarkdown } from "@/composables/useMarkdown";
 import { useCodeBlocks } from "@/composables/useCodeBlocks";
 import { useTwitterEmbed } from "@/composables/useTwitterEmbed";
 
+// 定义事件：目录更新时触发
+const emit = defineEmits<{
+  (e: "toc-updated", toc: { id: string; text: string; level: number }[]): void;
+}>();
+
 const props = withDefaults(
   defineProps<{
     source: string;
@@ -47,6 +52,9 @@ const showSource = ref(false); // false: 预览模式, true: 源码模式
 const renderedContent = ref("");
 const markdownContainer = ref<HTMLElement>();
 
+// 目录数据
+const tocItems = ref<{ id: string; text: string; level: number }[]>([]);
+
 // 代码块处理
 const { initCodeBlocks, handleExpandClick, enhanceCodeBlocks } = useCodeBlocks(
   markdownContainer
@@ -60,40 +68,126 @@ const renderContent = async (source: string) => {
   renderedContent.value = await render(source);
 };
 
+// 从 Markdown 源码中提取标题生成目录
+const extractToc = (markdown: string) => {
+  const lines = markdown.split(/\r?\n/);
+  const items: { id: string; text: string; level: number }[] = [];
+  const headingRegex = /^(#{1,6})\s+(.*)$/;
+
+  for (const line of lines) {
+    const match = line.match(headingRegex);
+    if (match) {
+      const level = match[1].length;
+      const rawText = match[2].trim();
+      // 去除内联格式，生成纯文本用于 id
+      const plainText = rawText
+        .replace(/\*\*(.*?)\*\*/g, "$1")
+        .replace(/\*(.*?)\*/g, "$1")
+        .replace(/`(.*?)`/g, "$1");
+      let id = plainText
+        .toLowerCase()
+        .replace(/[^\w\u4e00-\u9fa5]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      // 处理重复 id
+      let finalId = id;
+      let suffix = 1;
+      while (items.some((item) => item.id === finalId)) {
+        finalId = `${id}-${suffix++}`;
+      }
+      items.push({ id: finalId, text: rawText, level });
+    }
+  }
+  return items;
+};
+
+// 更新目录并发送给父组件
+const updateToc = () => {
+  const newToc = extractToc(editSource.value);
+  tocItems.value = newToc;
+  emit("toc-updated", newToc);
+};
+
+// 为渲染后的 DOM 中的标题元素添加对应 id
+const addHeadingIds = () => {
+  if (!markdownContainer.value) return;
+  const headings = markdownContainer.value.querySelectorAll("h1, h2, h3, h4, h5, h6");
+  headings.forEach((heading) => {
+    const text = heading.textContent || "";
+    const plainText = text
+      .replace(/\*\*(.*?)\*\*/g, "$1")
+      .replace(/\*(.*?)\*/g, "$1")
+      .replace(/`(.*?)`/g, "$1");
+    let id = plainText
+      .toLowerCase()
+      .replace(/[^\w\u4e00-\u9fa5]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    // 保证唯一性（简单处理，若冲突则加后缀）
+    let finalId = id;
+    let suffix = 1;
+    while (markdownContainer.value!.querySelector(`#${finalId}`)) {
+      finalId = `${id}-${suffix++}`;
+    }
+    heading.id = finalId;
+  });
+};
+
 // 切换模式
 const toggleMode = () => {
   showSource.value = !showSource.value;
 };
 
-// 当从源码模式切回预览模式时，使用最新的 editSource 重新渲染
+// 监听模式切换和内容变化
 watch(showSource, async (newVal) => {
   if (!newVal) {
     await renderContent(editSource.value);
     await nextTick();
+    addHeadingIds();
     initCodeBlocks();
     enhanceCodeBlocks();
     renderEmbeds();
   }
 });
 
-// 监听外部 source 变化，同步到 editSource（外部重置时）
+// 监听 editSource 变化，实时更新目录并重新渲染预览
+watch(editSource, async (newVal) => {
+  updateToc(); // 更新目录并发送
+  if (!showSource.value) {
+    await renderContent(newVal);
+    await nextTick();
+    addHeadingIds();
+    initCodeBlocks();
+    enhanceCodeBlocks();
+    renderEmbeds();
+  }
+});
+
+// 监听外部 source 变化，同步到 editSource
 watch(
   () => props.source,
   (newVal) => {
     if (newVal !== editSource.value) {
       editSource.value = newVal;
-      // 如果当前是预览模式，也重新渲染
+      updateToc(); // 外部内容变化时也更新目录
       if (!showSource.value) {
-        renderContent(newVal);
+        renderContent(newVal).then(() => {
+          nextTick(() => {
+            addHeadingIds();
+            initCodeBlocks();
+            enhanceCodeBlocks();
+            renderEmbeds();
+          });
+        });
       }
     }
   }
 );
 
 onMounted(async () => {
+  updateToc(); // 初始提取目录并发送
   await renderContent(editSource.value);
   if (!showSource.value) {
     await nextTick();
+    addHeadingIds();
     initCodeBlocks();
     enhanceCodeBlocks();
     renderEmbeds();
@@ -110,7 +204,9 @@ onMounted(async () => {
   position: sticky;
   top: 0;
   z-index: 10;
-  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
   padding: 8px;
   background-color: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(4px);
