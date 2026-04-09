@@ -9,6 +9,7 @@
 
     <!-- 预览模式：渲染后的 HTML -->
     <div
+      class="markdown-body"
       v-show="!showSource"
       ref="markdownContainer"
       v-html="renderedContent"
@@ -64,79 +65,105 @@ const { renderEmbeds } = useTwitterEmbed(markdownContainer);
 
 const { render } = useMarkdown();
 
-const renderContent = async (source: string) => {
-  renderedContent.value = await render(source);
+/**
+ * 生成标题 ID 的公共函数（统一规则）
+ * @param text 标题原始文本（可能包含 **粗体** 等内联标记）
+ * @param existingIds 已存在的 ID 集合，用于去重
+ * @returns 合法的 HTML ID（以 heading- 开头，仅包含字母数字短横线）
+ */
+const generateHeadingId = (
+  text: string,
+  existingIds: Set<string> = new Set()
+): string => {
+  // 去除内联格式（与 extractToc 保持一致）
+  const plainText = text
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/`(.*?)`/g, "$1");
+
+  // 基础 ID：转小写，非字母/数字/中文/下划线 → 短横线
+  let baseId = plainText
+    .toLowerCase()
+    .replace(/[^\w\u4e00-\u9fa5]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  if (!baseId) baseId = "heading";
+
+  // 添加固定前缀，确保以字母开头（避免 querySelector 报错）
+  baseId = `heading-${baseId}`;
+
+  // 唯一性处理
+  let finalId = baseId;
+  let suffix = 1;
+  while (existingIds.has(finalId)) {
+    finalId = `${baseId}-${suffix++}`;
+  }
+  existingIds.add(finalId);
+  return finalId;
 };
 
-// 从 Markdown 源码中提取标题生成目录
+/**
+ * 从 Markdown 源码中提取标题生成目录（使用统一 ID 规则）
+ */
 const extractToc = (markdown: string) => {
   const lines = markdown.split(/\r?\n/);
   const items: { id: string; text: string; level: number }[] = [];
   const headingRegex = /^(#{1,6})\s+(.*)$/;
+  const usedIds = new Set<string>();
 
   for (const line of lines) {
     const match = line.match(headingRegex);
     if (match) {
       const level = match[1].length;
       const rawText = match[2].trim();
-      // 去除内联格式，生成纯文本用于 id
-      const plainText = rawText
-        .replace(/\*\*(.*?)\*\*/g, "$1")
-        .replace(/\*(.*?)\*/g, "$1")
-        .replace(/`(.*?)`/g, "$1");
-      let id = plainText
-        .toLowerCase()
-        .replace(/[^\w\u4e00-\u9fa5]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-      // 处理重复 id
-      let finalId = id;
-      let suffix = 1;
-      while (items.some((item) => item.id === finalId)) {
-        finalId = `${id}-${suffix++}`;
-      }
-      items.push({ id: finalId, text: rawText, level });
+      const id = generateHeadingId(rawText, usedIds);
+      items.push({ id, text: rawText, level });
     }
   }
   return items;
 };
 
-// 更新目录并发送给父组件
+/**
+ * 更新目录并发送给父组件
+ */
 const updateToc = () => {
   const newToc = extractToc(editSource.value);
   tocItems.value = newToc;
   emit("toc-updated", newToc);
 };
 
-// 为渲染后的 DOM 中的标题元素添加对应 id
+/**
+ * 为渲染后的 DOM 中的标题元素添加对应 id（使用统一 ID 规则）
+ * 注意：需要确保 Markdown 渲染器已关闭自动生成 id 功能（如 marked 的 headerIds: false）
+ */
 const addHeadingIds = () => {
   if (!markdownContainer.value) return;
   const headings = markdownContainer.value.querySelectorAll("h1, h2, h3, h4, h5, h6");
+  const usedIds = new Set<string>();
+
   headings.forEach((heading) => {
+    // 获取标题纯文本内容（注意：textContent 已经不含 Markdown 标记）
     const text = heading.textContent || "";
-    const plainText = text
-      .replace(/\*\*(.*?)\*\*/g, "$1")
-      .replace(/\*(.*?)\*/g, "$1")
-      .replace(/`(.*?)`/g, "$1");
-    let id = plainText
-      .toLowerCase()
-      .replace(/[^\w\u4e00-\u9fa5]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-    // 保证唯一性（简单处理，若冲突则加后缀）
-    let finalId = id;
-    let suffix = 1;
-    while (markdownContainer.value!.querySelector(`#${finalId}`)) {
-      finalId = `${id}-${suffix++}`;
-    }
-    heading.id = finalId;
+    const newId = generateHeadingId(text, usedIds);
+    heading.id = newId;
   });
 };
 
-// 切换模式
+/**
+ * 渲染 Markdown 内容并更新 DOM
+ */
+const renderContent = async (source: string) => {
+  renderedContent.value = await render(source);
+};
+
+/**
+ * 切换预览/源码模式
+ */
 const toggleMode = () => {
   showSource.value = !showSource.value;
 };
 
-// 监听模式切换和内容变化
+// 监听模式切换
 watch(showSource, async (newVal) => {
   if (!newVal) {
     await renderContent(editSource.value);
@@ -148,7 +175,7 @@ watch(showSource, async (newVal) => {
   }
 });
 
-// 监听 editSource 变化，实时更新目录并重新渲染预览
+// 监听编辑内容变化，实时更新目录和预览
 watch(editSource, async (newVal) => {
   updateToc(); // 更新目录并发送
   if (!showSource.value) {
@@ -164,26 +191,25 @@ watch(editSource, async (newVal) => {
 // 监听外部 source 变化，同步到 editSource
 watch(
   () => props.source,
-  (newVal) => {
+  async (newVal) => {
     if (newVal !== editSource.value) {
       editSource.value = newVal;
-      updateToc(); // 外部内容变化时也更新目录
+      updateToc();
       if (!showSource.value) {
-        renderContent(newVal).then(() => {
-          nextTick(() => {
-            addHeadingIds();
-            initCodeBlocks();
-            enhanceCodeBlocks();
-            renderEmbeds();
-          });
-        });
+        await renderContent(newVal);
+        await nextTick();
+        addHeadingIds();
+        initCodeBlocks();
+        enhanceCodeBlocks();
+        renderEmbeds();
       }
     }
   }
 );
 
+// 组件挂载时初始化
 onMounted(async () => {
-  updateToc(); // 初始提取目录并发送
+  updateToc();
   await renderContent(editSource.value);
   if (!showSource.value) {
     await nextTick();
@@ -249,4 +275,4 @@ onMounted(async () => {
 }
 </style>
 
-<style src="../styles/markdown/md-style.scss"></style>
+<style src="../styles/markdown/markdown.scss"></style>

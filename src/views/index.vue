@@ -68,13 +68,13 @@ let isManualScrolling = false;
 let manualScrollReleaseTimer: number | null = null;
 let ticking = false;
 
-// 优化后的动态 sticky top 值（平滑过渡）
+// 动态 sticky top
 const updateStickyTop = () => {
   if (!tocAsideRef.value) return;
   const scrollY = window.scrollY;
-  const startTop = 300; // 初始 top 值
-  const endTop = 80; // 最终 top 值
-  const maxScroll = 300; // 滚动 300px 后达到最终 top（与 startTop 相同，过渡更自然）
+  const startTop = 300;
+  const endTop = 80;
+  const maxScroll = 300;
   let top = startTop - (scrollY / maxScroll) * (startTop - endTop);
   top = Math.min(startTop, Math.max(endTop, top));
   tocAsideRef.value.style.top = `${top}px`;
@@ -108,15 +108,17 @@ const scrollActiveIntoToc = () => {
   container.scrollTo({ top: targetScrollTop, behavior: "instant" });
 };
 
-// 精准高亮：基于 getBoundingClientRect + 阈值
+// 核心：高亮当前视口中可见的标题
 const updateActiveHeading = () => {
   if (isManualScrolling || !toc.value.length) return;
+
   const headings = toc.value
     .map((item) => ({ id: item.id, el: document.getElementById(item.id) }))
     .filter((item): item is { id: string; el: HTMLElement } => item.el !== null);
+
   if (headings.length === 0) return;
 
-  // 滚动到底部
+  // 滚动到底部检测
   const isBottom =
     window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50;
   if (isBottom) {
@@ -130,28 +132,28 @@ const updateActiveHeading = () => {
     return;
   }
 
-  // 寻找最佳标题：从后向前找第一个顶部位置 ≤ 视口顶部 + 偏移量的标题
-  const viewportTop = window.scrollY;
-  const ACTIVATION_OFFSET = 120;
-  let bestMatch = headings[0];
+  const OFFSET = 150; // 标题距离视口顶部小于此值时激活
+  let activeHeading = headings[0]; // 默认第一个
+
+  // 从后向前遍历，找到第一个标题顶部 <= OFFSET 的
   for (let i = headings.length - 1; i >= 0; i--) {
     const heading = headings[i];
     const rect = heading.el.getBoundingClientRect();
-    const headingTop = rect.top + window.scrollY;
-    if (headingTop <= viewportTop + ACTIVATION_OFFSET) {
-      bestMatch = heading;
+    if (rect.top <= OFFSET) {
+      activeHeading = heading;
       break;
     }
   }
-  if (bestMatch.id !== activeId.value) {
-    activeId.value = bestMatch.id;
+
+  if (activeHeading.id !== activeId.value) {
+    activeId.value = activeHeading.id;
     if (tocScrollTimer) clearTimeout(tocScrollTimer);
     tocScrollTimer = setTimeout(() => scrollActiveIntoToc(), 100);
   }
   updateMasks();
 };
 
-// 等待滚动结束（使用 scrollend 或降级）
+// 等待滚动结束
 const waitForScrollEnd = (callback: () => void) => {
   if ("onscrollend" in window) {
     const handler = () => {
@@ -175,18 +177,18 @@ const scrollTo = (id: string) => {
   if (manualScrollReleaseTimer) clearTimeout(manualScrollReleaseTimer);
   isManualScrolling = true;
   activeId.value = id;
-  // 立即滚动页面
   element.scrollIntoView({ behavior: "smooth", block: "start" });
-  // 滚动结束后再居中目录
   waitForScrollEnd(() => {
     scrollActiveIntoToc();
+    // 滚动结束后更新高亮，确保与当前视口同步
+    updateActiveHeading();
     manualScrollReleaseTimer = setTimeout(() => {
       isManualScrolling = false;
-    }, 100);
+    }, 150);
   });
 };
 
-// 滚动事件处理（使用 RAF 节流）
+// 滚动事件（节流）
 const onWindowScroll = () => {
   if (isManualScrolling) return;
   if (!ticking) {

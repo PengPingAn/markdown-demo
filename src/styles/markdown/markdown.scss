@@ -1,0 +1,18 @@
+@use "sass:meta";
+
+.markdown-body {
+  @include meta.load-css("./parts/base");
+  @include meta.load-css("./parts/admonitions");
+  @include meta.load-css("./parts/cards");
+  @include meta.load-css("./parts/collapse");
+  @include meta.load-css("./parts/carousel");
+  @include meta.load-css("./parts/video");
+  @include meta.load-css("./parts/flip-card");
+  @include meta.load-css("./parts/quotation");
+  @include meta.load-css("./parts/underline");
+  @include meta.load-css("./parts/code");
+  @include meta.load-css("./parts/excalidraw");
+  @include meta.load-css("./parts/icon");
+  @include meta.load-css("./parts/codeBlock");
+  @include meta.load-css("./parts/notes");
+}
