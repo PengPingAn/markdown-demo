@@ -17,11 +17,15 @@
             <div class="toc-scroll-container" ref="tocScrollContainer">
               <ul class="toc-list">
                 <li
-                  v-for="item in toc"
+                  v-for="(item, index) in toc"
                   :key="item.id"
                   :class="[
                     `toc-level-${item.level}`,
-                    { 'toc-active': activeId === item.id },
+                    {
+                      'toc-active': isActive(item.id),
+                      'toc-active-first': isActiveFirst(index),
+                      'toc-active-last': isActiveLast(index),
+                    },
                   ]"
                 >
                   <a
@@ -48,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, nextTick, computed } from "vue";
 import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import EmptyState from "@/components/EmptyState.vue";
 import mdGrammar from "./mdGrammar.md?raw";
@@ -68,7 +72,41 @@ let isManualScrolling = false;
 let manualScrollReleaseTimer: number | null = null;
 let ticking = false;
 
-// 动态 sticky top
+// 分支高亮逻辑
+const activeBranchIds = computed(() => {
+  if (!activeId.value || !toc.value.length) return new Set<string>();
+  const activeIndex = toc.value.findIndex((item) => item.id === activeId.value);
+  if (activeIndex === -1) return new Set<string>();
+  const activeLevel = toc.value[activeIndex].level;
+  const ids: string[] = [activeId.value];
+  for (let i = activeIndex + 1; i < toc.value.length; i++) {
+    const item = toc.value[i];
+    if (item.level < activeLevel) break;
+    if (activeLevel === 1 && item.level === 1) break;
+    ids.push(item.id);
+  }
+  return new Set(ids);
+});
+
+const isActive = (id: string) => activeBranchIds.value.has(id);
+
+const activeBranchRange = computed(() => {
+  if (!activeId.value || !toc.value.length) return { first: -1, last: -1 };
+  const ids = activeBranchIds.value;
+  let first = -1,
+    last = -1;
+  for (let i = 0; i < toc.value.length; i++) {
+    if (ids.has(toc.value[i].id)) {
+      if (first === -1) first = i;
+      last = i;
+    }
+  }
+  return { first, last };
+});
+
+const isActiveFirst = (index: number) => index === activeBranchRange.value.first;
+const isActiveLast = (index: number) => index === activeBranchRange.value.last;
+
 const updateStickyTop = () => {
   if (!tocAsideRef.value) return;
   const scrollY = window.scrollY;
@@ -105,10 +143,9 @@ const scrollActiveIntoToc = () => {
     container.scrollTop + itemTopRelative - containerHeight / 2 + itemHeight / 2;
   const maxScrollTop = container.scrollHeight - containerHeight;
   targetScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
-  container.scrollTo({ top: targetScrollTop, behavior: "instant" });
+  container.scrollTo({ top: targetScrollTop, behavior: "smooth" }); // 改为 smooth 让目录滚动更自然
 };
 
-// 核心：高亮当前视口中可见的标题
 const updateActiveHeading = () => {
   if (isManualScrolling || !toc.value.length) return;
 
@@ -118,7 +155,6 @@ const updateActiveHeading = () => {
 
   if (headings.length === 0) return;
 
-  // 滚动到底部检测
   const isBottom =
     window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50;
   if (isBottom) {
@@ -132,18 +168,19 @@ const updateActiveHeading = () => {
     return;
   }
 
-  const OFFSET = 150; // 标题距离视口顶部小于此值时激活
-  let activeHeading = headings[0]; // 默认第一个
+  const OFFSET = 150;
+  let activeHeading: { id: string; el: HTMLElement } | null = null;
 
-  // 从后向前遍历，找到第一个标题顶部 <= OFFSET 的
   for (let i = headings.length - 1; i >= 0; i--) {
     const heading = headings[i];
     const rect = heading.el.getBoundingClientRect();
-    if (rect.top <= OFFSET) {
+    if (rect.top >= 0 && rect.top <= OFFSET) {
       activeHeading = heading;
       break;
     }
   }
+
+  if (!activeHeading) return;
 
   if (activeHeading.id !== activeId.value) {
     activeId.value = activeHeading.id;
@@ -153,7 +190,6 @@ const updateActiveHeading = () => {
   updateMasks();
 };
 
-// 等待滚动结束
 const waitForScrollEnd = (callback: () => void) => {
   if ("onscrollend" in window) {
     const handler = () => {
@@ -170,7 +206,6 @@ const waitForScrollEnd = (callback: () => void) => {
   }
 };
 
-// 点击跳转
 const scrollTo = (id: string) => {
   const element = document.getElementById(id);
   if (!element) return;
@@ -180,7 +215,6 @@ const scrollTo = (id: string) => {
   element.scrollIntoView({ behavior: "smooth", block: "start" });
   waitForScrollEnd(() => {
     scrollActiveIntoToc();
-    // 滚动结束后更新高亮，确保与当前视口同步
     updateActiveHeading();
     manualScrollReleaseTimer = setTimeout(() => {
       isManualScrolling = false;
@@ -188,7 +222,6 @@ const scrollTo = (id: string) => {
   });
 };
 
-// 滚动事件（节流）
 const onWindowScroll = () => {
   if (isManualScrolling) return;
   if (!ticking) {
@@ -252,15 +285,14 @@ onUnmounted(() => {
   flex: 1;
   min-width: 0;
 }
-/* 目录容器：优化过渡动画 */
 .table-of-contents {
   width: 200px;
   flex-shrink: 0;
   position: sticky;
-  top: 300px; /* 初始值，会被 JS 动态覆盖 */
+  top: 300px;
   align-self: flex-start;
-  will-change: top; /* 提示浏览器优化 top 变化 */
-  transition: top 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1); /* 更流畅的缓动曲线 */
+  will-change: top;
+  transition: top 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
 }
 .toc-card {
   transition: box-shadow 0.2s;
@@ -293,12 +325,14 @@ onUnmounted(() => {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
 }
 .toc-list li {
   line-height: 1.4;
   border-left: 3px solid transparent;
-  transition: all 0.2s;
+  margin: 0;
+  /* 增强过渡：所有可动画属性都加上，并延长到 0.35s，使用自定义贝塞尔曲线 */
+  transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
 }
 .toc-link {
   display: block;
@@ -307,7 +341,7 @@ onUnmounted(() => {
   font-size: 0.875rem;
   padding: 5px 0 5px 12px;
   border-radius: 0 8px 8px 0;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -317,14 +351,31 @@ onUnmounted(() => {
   background: rgba(59, 130, 246, 0.08);
   transform: translateX(2px);
 }
+/* 高亮样式：使用纯色背景，并加入轻微的阴影和位移，增强自然感 */
 .toc-active {
   border-left-color: #3b82f6;
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.12), transparent);
+  background-color: rgba(59, 130, 246, 0.12);
+  /* 轻微向右位移，营造“被选中向前”的感觉 */
+  transform: translateX(2px);
+  box-shadow: -2px 0 6px rgba(59, 130, 246, 0.15);
 }
 .toc-active .toc-link {
   color: #1e40af;
   font-weight: 500;
 }
+/* 高亮分支圆角控制 */
+.toc-active.toc-active-first {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 0;
+}
+.toc-active.toc-active-last {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 8px;
+}
+.toc-active.toc-active-first.toc-active-last {
+  border-radius: 0 8px 8px 0;
+}
+/* 缩进层级 */
 .toc-level-1 {
   padding-left: 0;
 }
@@ -343,6 +394,7 @@ onUnmounted(() => {
 .toc-level-6 {
   padding-left: 3.75rem;
 }
+/* 遮罩渐变 */
 .toc-mask {
   position: absolute;
   left: 0;
