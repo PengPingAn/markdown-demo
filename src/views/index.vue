@@ -15,10 +15,12 @@
           <div class="toc-divider"></div>
           <div class="toc-scroll-wrapper">
             <div class="toc-scroll-container" ref="tocScrollContainer">
+              <div class="toc-indicator" ref="indicatorRef"></div>
               <ul class="toc-list">
                 <li
                   v-for="(item, index) in toc"
                   :key="item.id"
+                  :ref="(el) => setItemRef(el, index)"
                   :class="[
                     `toc-level-${item.level}`,
                     {
@@ -52,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed } from "vue";
+import { ref, onMounted, onUnmounted, nextTick, computed, watchEffect } from "vue";
 import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import EmptyState from "@/components/EmptyState.vue";
 import mdGrammar from "./mdGrammar.md?raw";
@@ -65,6 +67,12 @@ const tocScrollContainer = ref<HTMLElement | null>(null);
 const tocAsideRef = ref<HTMLElement | null>(null);
 const showTopMask = ref(false);
 const showBottomMask = ref(false);
+const indicatorRef = ref<HTMLElement | null>(null);
+const itemRefs = ref<(HTMLElement | null)[]>([]);
+
+const setItemRef = (el: any, index: number) => {
+  if (el) itemRefs.value[index] = el;
+};
 
 let scrollTimer: number | null = null;
 let tocScrollTimer: number | null = null;
@@ -72,7 +80,7 @@ let isManualScrolling = false;
 let manualScrollReleaseTimer: number | null = null;
 let ticking = false;
 
-// 分支高亮逻辑
+// ===================== 分支高亮逻辑（背景高亮） =====================
 const activeBranchIds = computed(() => {
   if (!activeId.value || !toc.value.length) return new Set<string>();
   const activeIndex = toc.value.findIndex((item) => item.id === activeId.value);
@@ -107,6 +115,125 @@ const activeBranchRange = computed(() => {
 const isActiveFirst = (index: number) => index === activeBranchRange.value.first;
 const isActiveLast = (index: number) => index === activeBranchRange.value.last;
 
+const activeFirstElement = computed(() => {
+  const firstIndex = activeBranchRange.value.first;
+  if (firstIndex === -1) return null;
+  return itemRefs.value[firstIndex] || null;
+});
+
+// ===================== 正文标题可见性（用于竖条覆盖和激活） =====================
+interface VisibleHeading {
+  index: number;
+  top: number;
+  bottom: number;
+}
+
+const getVisibleHeadings = (): VisibleHeading[] => {
+  const result: VisibleHeading[] = [];
+  for (let i = 0; i < toc.value.length; i++) {
+    const headingEl = document.getElementById(toc.value[i].id);
+    if (headingEl) {
+      const rect = headingEl.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        result.push({ index: i, top: rect.top, bottom: rect.bottom });
+      }
+    }
+  }
+  return result;
+};
+
+// 竖条覆盖的范围（基于所有可见正文标题）
+const visibleHeadingRange = ref({ first: -1, last: -1 });
+
+const updateVisibleHeadingRange = () => {
+  const visible = getVisibleHeadings();
+  if (visible.length) {
+    const indices = visible.map((v) => v.index);
+    visibleHeadingRange.value = {
+      first: Math.min(...indices),
+      last: Math.max(...indices),
+    };
+  } else {
+    visibleHeadingRange.value = { first: -1, last: -1 };
+  }
+};
+
+// 竖条指示器位置更新
+const updateIndicatorPosition = () => {
+  if (!indicatorRef.value || !tocScrollContainer.value) return;
+
+  let firstIdx = visibleHeadingRange.value.first;
+  let lastIdx = visibleHeadingRange.value.last;
+  let firstEl: HTMLElement | null = null;
+  let lastEl: HTMLElement | null = null;
+
+  if (firstIdx !== -1 && lastIdx !== -1) {
+    firstEl = itemRefs.value[firstIdx] || null;
+    lastEl = itemRefs.value[lastIdx] || null;
+  }
+
+  if (!firstEl || !lastEl) {
+    firstEl = activeFirstElement.value;
+    lastEl = firstEl;
+  }
+
+  if (!firstEl || !lastEl) {
+    indicatorRef.value.style.opacity = "0";
+    return;
+  }
+
+  const containerRect = tocScrollContainer.value.getBoundingClientRect();
+  const firstRect = firstEl.getBoundingClientRect();
+  const lastRect = lastEl.getBoundingClientRect();
+  const relativeTop = firstRect.top - containerRect.top;
+  const height = lastRect.bottom - firstRect.top;
+  indicatorRef.value.style.top = `${relativeTop}px`;
+  indicatorRef.value.style.height = `${height}px`;
+  indicatorRef.value.style.opacity = "1";
+};
+
+// ===================== 核心：更新当前激活的标题（背景高亮） =====================
+// 激活策略：选择第一个进入视口的标题（即 top 最小的可见标题）
+const updateActiveHeading = () => {
+  if (isManualScrolling || !toc.value.length) return;
+
+  const visible = getVisibleHeadings();
+  if (visible.length === 0) return;
+
+  // 滚动到底部检测
+  const isBottom =
+    window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50;
+  if (isBottom) {
+    const lastVisible = visible[visible.length - 1];
+    const lastId = toc.value[lastVisible.index].id;
+    if (lastId !== activeId.value) {
+      activeId.value = lastId;
+      if (tocScrollTimer) clearTimeout(tocScrollTimer);
+      tocScrollTimer = setTimeout(() => scrollActiveIntoToc(), 100);
+    }
+    return;
+  }
+
+  // 按 top 升序排序，取第一个（最靠近视口顶部）
+  const sorted = [...visible].sort((a, b) => a.top - b.top);
+  const firstVisible = sorted[0];
+  const targetId = toc.value[firstVisible.index].id;
+  if (targetId !== activeId.value) {
+    activeId.value = targetId;
+    if (tocScrollTimer) clearTimeout(tocScrollTimer);
+    tocScrollTimer = setTimeout(() => scrollActiveIntoToc(), 100);
+  }
+};
+
+// 统一刷新
+const refresh = () => {
+  updateVisibleHeadingRange();
+  updateActiveHeading();
+  updateIndicatorPosition();
+  updateMasks();
+};
+
+// ===================== 其他功能 =====================
 const updateStickyTop = () => {
   if (!tocAsideRef.value) return;
   const scrollY = window.scrollY;
@@ -120,6 +247,8 @@ const updateStickyTop = () => {
 
 const handleTocUpdate = (newToc: { id: string; text: string; level: number }[]) => {
   toc.value = newToc;
+  itemRefs.value = new Array(newToc.length).fill(null);
+  nextTick(() => refresh());
 };
 
 const updateMasks = () => {
@@ -131,7 +260,7 @@ const updateMasks = () => {
 
 const scrollActiveIntoToc = () => {
   if (!tocScrollContainer.value) return;
-  const activeItem = tocScrollContainer.value.querySelector(".toc-active");
+  const activeItem = activeFirstElement.value;
   if (!activeItem) return;
   const container = tocScrollContainer.value;
   const containerRect = container.getBoundingClientRect();
@@ -143,51 +272,7 @@ const scrollActiveIntoToc = () => {
     container.scrollTop + itemTopRelative - containerHeight / 2 + itemHeight / 2;
   const maxScrollTop = container.scrollHeight - containerHeight;
   targetScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
-  container.scrollTo({ top: targetScrollTop, behavior: "smooth" }); // 改为 smooth 让目录滚动更自然
-};
-
-const updateActiveHeading = () => {
-  if (isManualScrolling || !toc.value.length) return;
-
-  const headings = toc.value
-    .map((item) => ({ id: item.id, el: document.getElementById(item.id) }))
-    .filter((item): item is { id: string; el: HTMLElement } => item.el !== null);
-
-  if (headings.length === 0) return;
-
-  const isBottom =
-    window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50;
-  if (isBottom) {
-    const lastId = headings[headings.length - 1].id;
-    if (lastId !== activeId.value) {
-      activeId.value = lastId;
-      if (tocScrollTimer) clearTimeout(tocScrollTimer);
-      tocScrollTimer = setTimeout(() => scrollActiveIntoToc(), 100);
-    }
-    updateMasks();
-    return;
-  }
-
-  const OFFSET = 150;
-  let activeHeading: { id: string; el: HTMLElement } | null = null;
-
-  for (let i = headings.length - 1; i >= 0; i--) {
-    const heading = headings[i];
-    const rect = heading.el.getBoundingClientRect();
-    if (rect.top >= 0 && rect.top <= OFFSET) {
-      activeHeading = heading;
-      break;
-    }
-  }
-
-  if (!activeHeading) return;
-
-  if (activeHeading.id !== activeId.value) {
-    activeId.value = activeHeading.id;
-    if (tocScrollTimer) clearTimeout(tocScrollTimer);
-    tocScrollTimer = setTimeout(() => scrollActiveIntoToc(), 100);
-  }
-  updateMasks();
+  container.scrollTo({ top: targetScrollTop, behavior: "smooth" });
 };
 
 const waitForScrollEnd = (callback: () => void) => {
@@ -215,7 +300,7 @@ const scrollTo = (id: string) => {
   element.scrollIntoView({ behavior: "smooth", block: "start" });
   waitForScrollEnd(() => {
     scrollActiveIntoToc();
-    updateActiveHeading();
+    refresh();
     manualScrollReleaseTimer = setTimeout(() => {
       isManualScrolling = false;
     }, 150);
@@ -226,7 +311,7 @@ const onWindowScroll = () => {
   if (isManualScrolling) return;
   if (!ticking) {
     requestAnimationFrame(() => {
-      updateActiveHeading();
+      refresh();
       updateStickyTop();
       ticking = false;
     });
@@ -234,18 +319,22 @@ const onWindowScroll = () => {
   }
   if (scrollTimer) clearTimeout(scrollTimer);
   scrollTimer = setTimeout(() => {
-    updateActiveHeading();
+    refresh();
     updateStickyTop();
   }, 150);
 };
 
 const onTocScroll = () => {
   updateMasks();
+  updateIndicatorPosition();
 };
+
+const onResize = () => refresh();
 
 onMounted(() => {
   window.addEventListener("scroll", onWindowScroll, { passive: true });
-  updateActiveHeading();
+  window.addEventListener("resize", onResize);
+  refresh();
   updateStickyTop();
   nextTick(() => {
     if (tocScrollContainer.value) {
@@ -257,6 +346,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener("scroll", onWindowScroll);
+  window.removeEventListener("resize", onResize);
   if (scrollTimer) clearTimeout(scrollTimer);
   if (tocScrollTimer) clearTimeout(tocScrollTimer);
   if (manualScrollReleaseTimer) clearTimeout(manualScrollReleaseTimer);
@@ -267,6 +357,7 @@ onUnmounted(() => {
 </script>
 
 <style lang="css" scoped>
+/* 样式与上一版本完全相同，此处省略以保持简洁，请复制上一版本的样式 */
 .markdown-page {
   max-width: 1400px;
   margin: 0 auto;
@@ -295,6 +386,7 @@ onUnmounted(() => {
   transition: top 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
 }
 .toc-card {
+  position: relative;
   transition: box-shadow 0.2s;
 }
 .toc-card:hover {
@@ -311,6 +403,7 @@ onUnmounted(() => {
   position: relative;
 }
 .toc-scroll-container {
+  position: relative;
   max-height: 270px;
   overflow-y: auto;
   scrollbar-width: none;
@@ -319,6 +412,26 @@ onUnmounted(() => {
 .toc-scroll-container::-webkit-scrollbar {
   display: none;
 }
+.toc-indicator {
+  position: absolute;
+  left: 0;
+  width: 0.15em;
+  background-color: #6dde9b;
+  border-radius: 6px;
+  transition: top 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1),
+    height 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.2s;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 20%,
+    #000 80%,
+    transparent
+  );
+  mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
+}
 .toc-list {
   list-style: none;
   padding: 0;
@@ -326,12 +439,13 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0;
+  position: relative;
+  z-index: 1;
 }
 .toc-list li {
   line-height: 1.4;
   border-left: 3px solid transparent;
   margin: 0;
-  /* 增强过渡：所有可动画属性都加上，并延长到 0.35s，使用自定义贝塞尔曲线 */
   transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
 }
 .toc-link {
@@ -351,19 +465,16 @@ onUnmounted(() => {
   background: rgba(59, 130, 246, 0.08);
   transform: translateX(2px);
 }
-/* 高亮样式：使用纯色背景，并加入轻微的阴影和位移，增强自然感 */
 .toc-active {
-  border-left-color: #3b82f6;
   background-color: rgba(59, 130, 246, 0.12);
-  /* 轻微向右位移，营造“被选中向前”的感觉 */
   transform: translateX(2px);
   box-shadow: -2px 0 6px rgba(59, 130, 246, 0.15);
+  border-left-color: #3b82f6;
 }
 .toc-active .toc-link {
   color: #1e40af;
   font-weight: 500;
 }
-/* 高亮分支圆角控制 */
 .toc-active.toc-active-first {
   border-top-right-radius: 8px;
   border-bottom-right-radius: 0;
@@ -375,7 +486,6 @@ onUnmounted(() => {
 .toc-active.toc-active-first.toc-active-last {
   border-radius: 0 8px 8px 0;
 }
-/* 缩进层级 */
 .toc-level-1 {
   padding-left: 0;
 }
@@ -394,7 +504,6 @@ onUnmounted(() => {
 .toc-level-6 {
   padding-left: 3.75rem;
 }
-/* 遮罩渐变 */
 .toc-mask {
   position: absolute;
   left: 0;

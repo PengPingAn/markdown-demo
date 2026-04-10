@@ -3,28 +3,28 @@
 > [!NOTE]
 > 用于传达有助于理解但非关键的信息，适合补充背景、提示或建议。
 
-## 二级标题
+# 二级标题
 
 > [!NOTE]
 > 用于传达有助于理解但非关键的信息，适合补充背景、提示或建议。
 
-### 三级标题
+## 三级标题
 
 > [!NOTE]
 > 用于传达有助于理解但非关键的信息，适合补充背景、提示或建议。
 
-#### 四级标题
+### 四级标题
 
 > [!NOTE]
 > 用于传达有助于理解但非关键的信息，适合补充背景、提示或建议。
 
-## X 卡片
+# X 卡片
 
 :::video src=https://x.com/__oQuery/status/2034516604726427758
 推特 推文
 :::
 
-## 便签
+# 便签
 
 ::: sticky-note
 
@@ -39,14 +39,14 @@
 
 :::
 
-## 引用
+# 引用
 
 ::: quotation
 这是一段引用回忆的文字。(默认颜色)
 可能很长，包含情绪、反思，像日记一样。
 :::
 
-## 另一种风格的便签
+# 另一种风格的便签
 
 ::: paper-note
 **灵感**：设计不只是它看起来怎样，还在于它如何工作。  
@@ -56,23 +56,23 @@
 - 追求本质
   :::
 
-## 影视卡片
+# 影视卡片
 
 :::card url=https://www.themoviedb.org/movie/1462229-3 title="飞驰人生3 " image=https://image.tmdb.org/t/p/w500/cL5vAK6bUHYWTOnypi34mzzWI8X.jpg rating=7.1
 巴音布鲁克最后一站收官后，张驰（沈腾 饰）受邀作为车队主教练征战全新赛事“沐尘100拉力赛”，“野生车手”走上国际舞台！面对高手如云的全新赛道，孙宇强（尹正 饰）、记星（张本煜 饰）一如既往协同作战，林臻东（黄景瑜 饰）等实力车手应邀强势集结，一支凝聚了顶配速度与信念的车队就此成立！然而，张驰发现真正的挑战仿佛并非来自比赛本身，赛场之外暗流涌动，让他们飞驰之路充满变数……
 :::
 
-## Magic UI 文本效果
+# Magic UI 文本效果
 
 [__Magic UI下划线语法]
 
 [==Magic UI高亮语法]
 
-## 行内代码
+# 行内代码
 
 `inline code`
 
-## 代码块
+# 代码块
 
 ```ts
 <script setup lang="ts">
@@ -159,15 +159,15 @@ const closeDetail = () => (showDetail.value = false)
 </script>
 ```
 
-## 语法高亮
+# 语法高亮
 
 ==落日西沉，炊烟袅袅。==
 
-## 链接卡片
+# 链接卡片
 
 @linkCard[标题][https://q2.itc.cn/q_70/images03/20241013/6fe9a539a055473b8677c734558b462f.jpeg][这是一个描述](https://icon-sets.iconify.design/?query=link&search-page=1)
 
-## 折叠卡片
+# 折叠卡片
 
 :::collapse title=点我展开内容
 ==春风若有怜花意，可否许我再少年？==
@@ -177,7 +177,7 @@ const closeDetail = () => (showDetail.value = false)
 - 列表
   :::
 
-## 轮播图
+# 轮播图
 
 :::carousel
 https://ss3.baidu.com/9fo3dSag_xI4khGko9WTAnF6hhy/zhidao/pic/item/18d8bc3eb13533fae0a4ef61acd3fd1f41345b6a.jpg
@@ -187,7 +187,7 @@ https://p7.itc.cn/q_70/images03/20240101/469a5b2a96a346318d190fd0acfe20c3.jpeg
 https://pic1.zhimg.com/80/v2-2464893e23ed8c3d2760b446015ef8e8_r.jpg
 :::
 
-## 提示框
+# 提示框
 
 > [!NOTE]
 > 用于传达有助于理解但非关键的信息，适合补充背景、提示或建议。
@@ -198,7 +198,7 @@ https://pic1.zhimg.com/80/v2-2464893e23ed8c3d2760b446015ef8e8_r.jpg
 > [!Danger]
 > 用于突出极其重要或危险的信息，即使用户快速浏览也必须注意到。
 
-## 外部链接嵌套
+# 外部链接嵌套
 
 :::video src=https://player.bilibili.com/player.html?isOutside=true&aid=626357031&bvid=BV1yt4y1Q7SS&cid=210738676&p=1&autoplay=false
 敢杀我的马？
@@ -208,15 +208,15 @@ https://pic1.zhimg.com/80/v2-2464893e23ed8c3d2760b446015ef8e8_r.jpg
 油管视频
 :::
 
-## 隐藏文本
+# 隐藏文本
 
 ||你知道的太多了。||
 
-## 链接
+# 链接
 
 @Pingan[随机头像 API](https://api.multiavatar.com/_随机数.png)
 
-## 提示横幅
+# 提示横幅
 
 ::: warning
 warning
@@ -226,12 +226,12 @@ warning
 error
 :::
 
-## 翻转卡片
+# 翻转卡片
 
 :::textflip title=我一定会找回你的
 守得云开见月明 我们会白头偕老的
 :::
 
-## 自定义文字大小
+# 自定义文字大小
 
 @size[25px]{这是一段文字} 这是默认大小
