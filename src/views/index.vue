@@ -60,7 +60,7 @@ import EmptyState from "@/components/EmptyState.vue";
 import mdGrammar from "./mdGrammar.md?raw";
 import md2 from "./md2.md?raw";
 
-const markdownText = ref(md2);
+const markdownText = ref(mdGrammar);
 const toc = ref<{ id: string; text: string; level: number }[]>([]);
 const activeId = ref("");
 const tocScrollContainer = ref<HTMLElement | null>(null);
@@ -159,6 +159,7 @@ const updateVisibleHeadingRange = () => {
 };
 
 // 竖条指示器位置更新
+// 竖条指示器位置更新（修复滚动容器偏移问题）
 const updateIndicatorPosition = () => {
   if (!indicatorRef.value || !tocScrollContainer.value) return;
 
@@ -182,11 +183,16 @@ const updateIndicatorPosition = () => {
     return;
   }
 
-  const containerRect = tocScrollContainer.value.getBoundingClientRect();
+  const container = tocScrollContainer.value;
+  const containerRect = container.getBoundingClientRect();
   const firstRect = firstEl.getBoundingClientRect();
   const lastRect = lastEl.getBoundingClientRect();
-  const relativeTop = firstRect.top - containerRect.top;
+
+  // 🔧 关键修复：考虑容器滚动偏移
+  const scrollTop = container.scrollTop;
+  const relativeTop = firstRect.top - containerRect.top + scrollTop;
   const height = lastRect.bottom - firstRect.top;
+
   indicatorRef.value.style.top = `${relativeTop}px`;
   indicatorRef.value.style.height = `${height}px`;
   indicatorRef.value.style.opacity = "1";
