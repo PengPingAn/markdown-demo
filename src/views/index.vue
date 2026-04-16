@@ -2,6 +2,7 @@
   <div class="markdown-page">
     <div class="top-header">
       <EmptyState />
+      <tech-icon language="java" :size="16" class="tab-icon"></tech-icon>
       <div class="text-3xl font-bold text-blue-600">Markdown 自定义语法演示</div>
     </div>
 
@@ -59,6 +60,7 @@ import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import EmptyState from "@/components/EmptyState.vue";
 import mdGrammar from "./mdGrammar.md?raw";
 import md2 from "./md2.md?raw";
+import md3 from "./md3.md?raw";
 
 const markdownText = ref(mdGrammar);
 const toc = ref<{ id: string; text: string; level: number }[]>([]);

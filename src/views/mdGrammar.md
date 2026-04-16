@@ -1,3 +1,25 @@
+```ts main.ts
+import type { ClassValue } from "clsx";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+```
+
+```js config.js
+import type { ClassValue } from "clsx";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+return twMerge(clsx(inputs));
+}
+```
+
+||==这是一段内容==||
+
 # 一级标题
 
 > [!NOTE]
@@ -31,7 +53,7 @@
 @size[25px]{灵感碎片}
 
 - 三层堆叠纸张设计
-- 支持 **Markdown** 语法
+- 支持 `Markdown` 语法
 - 网格底纹 + 彩色装饰条
 
 > 关于女性、性教育和传统观念。
@@ -74,7 +96,7 @@
 
 # 代码块
 
-```ts
+```ts main.ts
 <script setup lang="ts">
 const route = useRoute()
 const albumIdParam = computed(() => route.params.id as string)

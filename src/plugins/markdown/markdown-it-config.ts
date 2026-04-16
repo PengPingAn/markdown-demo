@@ -669,16 +669,47 @@ export const markdownConfig = (md, options = {}) => {
   });
 
   //语法高亮
-  md.inline.ruler.before("text", "highlight", (state) => {
+  // md.inline.ruler.before("text", "highlight", (state) => {
+  //   const start = state.pos;
+  //   const match = state.src.slice(start).match(/^==([^=]+?)==/);
+  //   if (!match) return false;
+
+  //   const token = state.push("highlight", "", 0);
+  //   token.content = match[1];
+  //   token.attrs = [["class", "mark"]];
+
+  //   state.pos += match[0].length;
+  //   return true;
+  // });
+  md.inline.ruler.before("text", "highlight", (state, silent) => {
     const start = state.pos;
-    const match = state.src.slice(start).match(/^==([^=]+?)==/);
-    if (!match) return false;
+    const src = state.src;
+    if (src[start] !== "=" || src[start + 1] !== "=") return false;
+
+    let pos = start + 2;
+    let level = 1;
+    while (pos < src.length && level > 0) {
+      if (src[pos] === "=" && src[pos + 1] === "=") {
+        pos += 2;
+        level--;
+      } else {
+        pos++;
+      }
+    }
+    if (level !== 0) return false; // 没有正确闭合
+
+    const content = src.slice(start + 2, pos - 2);
+    if (silent) return true;
 
     const token = state.push("highlight", "", 0);
-    token.content = match[1];
     token.attrs = [["class", "mark"]];
 
-    state.pos += match[0].length;
+    // 递归解析内部内容（支持嵌套的 || 等）
+    const innerState = new state.md.inline.State(content, state.md, state.env, []);
+    innerState.md.inline.tokenize(innerState);
+    token.children = innerState.tokens;
+
+    state.pos = pos;
     return true;
   });
 
@@ -845,51 +876,96 @@ export const markdownConfig = (md, options = {}) => {
   });
 
   // 隐藏语法 将规则提升到最高优先级（在 text 规则之前）
-  md.core.ruler.push("tooltip_parser", (state) => {
-    const Token = state.Token;
+  // md.core.ruler.push("tooltip_parser", (state) => {
+  //   const Token = state.Token;
 
-    state.tokens.forEach((blockToken) => {
-      if (blockToken.type !== "inline") return;
+  //   state.tokens.forEach((blockToken) => {
+  //     if (blockToken.type !== "inline") return;
 
-      const children = <any>[];
-      blockToken.children.forEach((token) => {
-        if (token.type !== "text") {
-          children.push(token);
-          return;
-        }
+  //     const children = <any>[];
+  //     blockToken.children.forEach((token) => {
+  //       if (token.type !== "text") {
+  //         children.push(token);
+  //         return;
+  //       }
 
-        const text = token.content;
-        const regex = /\|\|([^|]+?)\|\|/g;
-        let lastIndex = 0;
-        let match;
+  //       const text = token.content;
+  //       const regex = /\|\|([^|]+?)\|\|/g;
+  //       let lastIndex = 0;
+  //       let match;
 
-        while ((match = regex.exec(text)) !== null) {
-          if (match.index > lastIndex) {
-            const t = new Token("text", "", 0);
-            t.content = text.slice(lastIndex, match.index);
-            children.push(t);
-          }
+  //       while ((match = regex.exec(text)) !== null) {
+  //         if (match.index > lastIndex) {
+  //           const t = new Token("text", "", 0);
+  //           t.content = text.slice(lastIndex, match.index);
+  //           children.push(t);
+  //         }
 
-          const tooltipToken = new Token("tooltip", "", 0);
-          tooltipToken.content = match[1];
-          tooltipToken.attrs = [
-            ["title", "你知道得太多了"],
-            ["class", "p-span-tag"],
-          ];
-          children.push(tooltipToken);
+  //         const tooltipToken = new Token("tooltip", "", 0);
+  //         tooltipToken.content = match[1];
+  //         tooltipToken.attrs = [
+  //           ["title", "你知道得太多了"],
+  //           ["class", "p-span-tag"],
+  //         ];
+  //         children.push(tooltipToken);
 
-          lastIndex = regex.lastIndex;
-        }
+  //         lastIndex = regex.lastIndex;
+  //       }
 
-        if (lastIndex < text.length) {
-          const t = new Token("text", "", 0);
-          t.content = text.slice(lastIndex);
-          children.push(t);
-        }
-      });
+  //       if (lastIndex < text.length) {
+  //         const t = new Token("text", "", 0);
+  //         t.content = text.slice(lastIndex);
+  //         children.push(t);
+  //       }
+  //     });
 
-      blockToken.children = children;
-    });
+  //     blockToken.children = children;
+  //   });
+  // });
+
+  // 隐藏语法 ||...|| 支持嵌套内联语法（如 ==高亮==）
+  md.inline.ruler.before("text", "tooltip", (state, silent) => {
+    const start = state.pos;
+    const src = state.src;
+
+    // 检查开头的 ||
+    if (src[start] !== "|" || src[start + 1] !== "|") return false;
+
+    let pos = start + 2;
+    let level = 1;
+    // 查找匹配的结束 ||（简单计数，不处理转义）
+    while (pos < src.length && level > 0) {
+      if (src[pos] === "|" && src[pos + 1] === "|") {
+        pos += 2;
+        level--;
+      } else {
+        pos++;
+      }
+    }
+    if (level !== 0) return false; // 没有正确闭合
+
+    const content = src.slice(start + 2, pos - 2);
+    const end = pos;
+
+    if (silent) {
+      // silent 模式只检测语法，不移动位置
+      return true;
+    }
+
+    // 创建 tooltip token
+    const token = state.push("tooltip", "", 0);
+    token.attrs = [
+      ["title", "你知道得太多了"],
+      ["class", "p-span-tag"],
+    ];
+
+    // 递归解析内部内容（支持 ==高亮== 等）
+    const innerState = new state.md.inline.State(content, state.md, state.env, []);
+    innerState.md.inline.tokenize(innerState);
+    token.children = innerState.tokens;
+
+    state.pos = end;
+    return true;
   });
 
   //轮播图
@@ -938,19 +1014,40 @@ export const markdownConfig = (md, options = {}) => {
   });
 
   // 隐藏渲染
-  md.renderer.rules.tooltip = (tokens, idx) => {
+  // md.renderer.rules.tooltip = (tokens, idx) => {
+  //   const token = tokens[idx];
+  //   // console.log('渲染 tooltip:', token);
+  //   return `<span title="${token.attrs[0][1]}" class="${token.attrs[1][1]}">${token.content}</span>`;
+  // };
+  md.renderer.rules.tooltip = (tokens, idx, options, env, self) => {
     const token = tokens[idx];
-    // console.log('渲染 tooltip:', token);
-    return `<span title="${token.attrs[0][1]}" class="${token.attrs[1][1]}">${token.content}</span>`;
+    const title = token.attrs?.[0]?.[1] || "你知道得太多了";
+    const className = token.attrs?.[1]?.[1] || "p-span-tag";
+
+    // 优先使用 children（嵌套内容），否则使用 content
+    const content = token.children
+      ? self.renderInline(token.children, options, env)
+      : token.content || "";
+
+    return `<span title="${title}" class="${className}">${content}</span>`;
   };
 
   //高亮渲染
-  md.renderer.rules.highlight = (tokens, idx) => {
+  // md.renderer.rules.highlight = (tokens, idx) => {
+  //   const token = tokens[idx];
+  //   return `<mark class="${token.attrs[0][1]}">
+  //                 <span class="mark-span">${token.content}</span>
+  //               </mark>
+  //               `;
+  // };
+  md.renderer.rules.highlight = (tokens, idx, options, env, self) => {
     const token = tokens[idx];
+    const content = token.children
+      ? self.renderInline(token.children, options, env)
+      : token.content || "";
     return `<mark class="${token.attrs[0][1]}">
-                  <span class="mark-span">${token.content}</span>
-                </mark>
-                `;
+                <span class="mark-span">${content}</span>
+            </mark>`;
   };
 
   //链接渲染

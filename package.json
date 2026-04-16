@@ -15,9 +15,11 @@
     "format": "oxfmt src/"
   },
   "dependencies": {
+    "@devicon/vue": "^0.0.5",
     "@excalidraw/excalidraw": "^0.18.0",
     "@shikijs/markdown-it": "^4.0.2",
     "@tailwindcss/vite": "^4.2.1",
+    "@vue/server-renderer": "^3.5.32",
     "dompurify": "^3.3.3",
     "highlight.js": "^11.11.1",
     "markdown-it": "^14.1.1",
