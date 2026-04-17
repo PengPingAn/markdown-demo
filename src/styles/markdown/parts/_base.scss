@@ -244,3 +244,63 @@ p code {
   color: #6e6e6e; /* 行号颜色 */
   user-select: none; /* 防止行号被选中 */
 }
+
+/* 来自 Uiverse.io by boryanakrasteva - 缩小版 */
+.checkbox-wrapper input[type="checkbox"] {
+  visibility: hidden;
+  display: none;
+  display: flex;
+}
+
+.checkbox-wrapper *,
+.checkbox-wrapper ::after,
+.checkbox-wrapper ::before {
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.checkbox-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.checkbox-wrapper .label {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+}
+
+.checkbox-wrapper .check {
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  opacity: 0;
+}
+
+.checkbox-wrapper .label svg {
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+}
+
+.checkbox-wrapper .path1 {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  transition: 0.5s stroke-dashoffset;
+  opacity: 1;
+}
+
+.checkbox-wrapper .check:checked + label svg g path {
+  stroke-dashoffset: 0;
+  opacity: 1;
+}
+
+/* 调整列表项样式 */
+.task-list-item {
+  list-style-type: none;
+  margin-left: 0;
+  padding-left: 0;
+}

@@ -2,7 +2,6 @@
   <div class="markdown-page">
     <div class="top-header">
       <EmptyState />
-      <tech-icon language="java" :size="16" class="tab-icon"></tech-icon>
       <div class="text-3xl font-bold text-blue-600">Markdown 自定义语法演示</div>
     </div>
 

@@ -110,10 +110,13 @@ export function getLanguageIconSvg(language: string): string {
   // 别名映射
   const aliasMap: Record<string, string> = {
     js: "javascript",
+    jsx: "javascript",
     ts: "ts",
+    tsx: "ts",
     py: "python",
     cpp: "cpp",
     csharp: "csharp",
+    mssql: "sqlserver",
     sh: "bash",
     shell: "bash",
     yml: "yaml",

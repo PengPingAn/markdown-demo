@@ -1,4 +1,10 @@
-```ts main.ts
+- [ ] 未完成项
+- [x] 已完成项
+
+- 1
+- 2
+
+```tsx main.ts
 import type { ClassValue } from "clsx";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -194,10 +200,11 @@ const closeDetail = () => (showDetail.value = false)
 :::collapse title=点我展开内容
 ==春风若有怜花意，可否许我再少年？==
 
-> _“人间浮躁，尘世喧嚣。不曾想过去桃花源与世界隔绝的人间圣地，只想拥有一片属于自己的宁境。 不曾去过森林，却想在森林中聆听大自然的声音，享受这一片宁静。”_
+> _人间浮躁，尘世喧嚣。不曾想过去桃花源与世界隔绝的人间圣地，只想拥有一片属于自己的宁境。 不曾去过森林，却想在森林中聆听大自然的声音，享受这一片宁静。_
 
 - 列表
-  :::
+
+:::
 
 # 轮播图
 

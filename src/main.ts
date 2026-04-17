@@ -1,7 +1,6 @@
 import { createApp, nextTick } from "vue";
 import { createPinia } from "pinia";
 import "./assets/main.css";
-import TechIcon from "./components/TechIcon.vue";
 
 import App from "./App.vue";
 import router from "./router";
@@ -20,7 +19,6 @@ const app = createApp(App);
 
 app.use(createPinia());
 app.use(router);
-app.component("TechIcon", TechIcon);
 
 let disposeHoverCard: (() => void) | null = null;
 let disposeCarousel: (() => void) | null = null;
