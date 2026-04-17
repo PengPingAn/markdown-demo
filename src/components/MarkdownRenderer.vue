@@ -28,9 +28,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, nextTick } from "vue";
-import { useMarkdown } from "@/composables/useMarkdown";
-import { useCodeBlocks } from "@/composables/useCodeBlocks";
-import { useTwitterEmbed } from "@/composables/useTwitterEmbed";
+import { useMarkdown } from "../composables/useMarkdown";
+import { useCodeBlocks } from "../composables/useCodeBlocks";
+import { useTwitterEmbed } from "../composables/useTwitterEmbed";
 
 // 定义事件：目录更新时触发
 const emit = defineEmits<{

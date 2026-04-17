@@ -1,18 +1,18 @@
 // utils/markdown-it-config.js
-import mingcuteIcon from "@/assets/svg/mingcute.svg";
-import errorIcon from "@/assets/svg/error.svg";
-import warningIcon from "@/assets/svg/warning.svg";
-import svgLeft from "@/assets/svg/carousel-left.svg?raw";
-import svgRight from "@/assets/svg/carousel-right.svg?raw";
-import svgAlWarning from "@/assets/svg/alerts-warning.svg?raw";
-import svgAlError from "@/assets/svg/alerts-error.svg?raw";
-import svgAlNote from "@/assets/svg/alerts-note.svg?raw";
-import svgDownLine from "@/assets/svg/down-line.svg?raw";
-import svgFlip from "@/assets/svg/flip.svg?raw";
+import mingcuteIcon from "../../assets/svg/mingcute.svg";
+import errorIcon from "../../assets/svg/error.svg";
+import warningIcon from "../../assets/svg/warning.svg";
+import svgLeft from "../../assets/svg/carousel-left.svg?raw";
+import svgRight from "../../assets/svg/carousel-right.svg?raw";
+import svgAlWarning from "../../assets/svg/alerts-warning.svg?raw";
+import svgAlError from "../../assets/svg/alerts-error.svg?raw";
+import svgAlNote from "../../assets/svg/alerts-note.svg?raw";
+import svgDownLine from "../../assets/svg/down-line.svg?raw";
+import svgFlip from "../../assets/svg/flip.svg?raw";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { Excalidraw } from "@excalidraw/excalidraw";
-import { useEditorThemeStore } from "@/stores/pinia";
+import { useEditorThemeStore } from "../../stores/pinia";
 // 用于记录已挂载实例，避免重复渲染
 const excalidrawInstances: Record<string, boolean> = {};
 

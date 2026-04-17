@@ -1,9 +1,9 @@
 // composables/useMarkdown.ts
 import MarkdownIt from "markdown-it";
 import DOMPurify from "dompurify";
-import { getInitPromise, getHighlighterSync } from "@/plugins/markdown/highlighter";
-import { setupMarkdownPlugins } from "@/plugins/markdown";
-import { getLanguageIconSvg } from "@/plugins/markdown/languageIconMap";
+import { getHighlighterSync, initHighlighter } from "../plugins/markdown/highlighter";
+import { setupMarkdownPlugins } from "../plugins/markdown";
+import { getLanguageIconSvg } from "../plugins/markdown/languageIconMap";
 
 // 辅助函数：解析语言和文件名
 function parseLangAndFileName(info: string): { baseLang: string; fileName: string | null } {
@@ -101,7 +101,7 @@ export function useMarkdown() {
   };
 
   const render = async (source: string): Promise<string> => {
-    await getInitPromise();
+    await initHighlighter();
     const md = createMarkdownIt();
     const rawHtml = md.render(source);
 
