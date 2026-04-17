@@ -515,6 +515,62 @@ export const markdownConfig = (md, options = {}) => {
   });
 
   //NOTE扩展
+  // md.block.ruler.before("blockquote", "admonition", (state, startLine, endLine, silent) => {
+  //   const start = state.bMarks[startLine] + state.tShift[startLine];
+  //   const max = state.eMarks[startLine];
+  //   const line = state.src.slice(start, max).trim();
+
+  //   const match = line.match(/^> \[!(\w+)]\s*$/);
+  //   if (!match) return false;
+
+  //   const type = match[1].toLowerCase();
+  //   const titleMap: Record<string, string> = {
+  //     note: "Note",
+  //     warning: "Warning",
+  //     danger: "Danger",
+  //   };
+  //   const iconMap: Record<string, string> = {
+  //     note: svgAlNote,
+  //     warning: svgAlWarning,
+  //     danger: svgAlError,
+  //   };
+
+  //   let nextLine = startLine + 1;
+  //   const contentLines: string[] = [];
+
+  //   while (nextLine < endLine) {
+  //     const pos = state.bMarks[nextLine] + state.tShift[nextLine];
+  //     const maxPos = state.eMarks[nextLine];
+  //     const text = state.src.slice(pos, maxPos).trim();
+  //     if (!text.startsWith(">")) break;
+  //     contentLines.push(text.replace(/^>\s?/, ""));
+  //     nextLine++;
+  //   }
+
+  //   if (silent) return true;
+  //   state.line = nextLine;
+
+  //   const title = titleMap[type] || "Note";
+  //   const icon = iconMap[type] || "ℹ️";
+  //   const body = md.utils.escapeHtml(contentLines.join("\n"));
+
+  //   const html = `
+  //     <div class="m-admonition alerts-${type}">
+  //       <div class="m-admonition-title">
+  //         <span class="m-admonition-icon">${icon}</span>
+  //         <span class="m-admonition-label">${title}</span>
+  //       </div>
+  //       <div class="m-admonition-body">${md.renderInline(body)}</div>
+  //     </div>
+  //     `;
+
+  //   const token = state.push("html_block", "", 0);
+  //   token.content = html;
+
+  //   return true;
+  // });
+  // NOTE 扩展 - 使用 md.render 确保所有语法生效
+  // NOTE 扩展 - 预处理 ||...|| 确保生效
   md.block.ruler.before("blockquote", "admonition", (state, startLine, endLine, silent) => {
     const start = state.bMarks[startLine] + state.tShift[startLine];
     const max = state.eMarks[startLine];
@@ -524,26 +580,21 @@ export const markdownConfig = (md, options = {}) => {
     if (!match) return false;
 
     const type = match[1].toLowerCase();
-    const titleMap: Record<string, string> = {
-      note: "Note",
-      warning: "Warning",
-      danger: "Danger",
-    };
-    const iconMap: Record<string, string> = {
+    const titleMap = { note: "Note", warning: "Warning", danger: "Danger" };
+    const iconMap = {
       note: svgAlNote,
       warning: svgAlWarning,
       danger: svgAlError,
     };
 
     let nextLine = startLine + 1;
-    const contentLines: string[] = [];
-
+    const contentLines = [];
     while (nextLine < endLine) {
       const pos = state.bMarks[nextLine] + state.tShift[nextLine];
       const maxPos = state.eMarks[nextLine];
-      const text = state.src.slice(pos, maxPos).trim();
-      if (!text.startsWith(">")) break;
-      contentLines.push(text.replace(/^>\s?/, ""));
+      const lineText = state.src.slice(pos, maxPos);
+      if (!lineText.trim().startsWith(">")) break;
+      contentLines.push(lineText.replace(/^>\s?/, ""));
       nextLine++;
     }
 
@@ -552,17 +603,25 @@ export const markdownConfig = (md, options = {}) => {
 
     const title = titleMap[type] || "Note";
     const icon = iconMap[type] || "ℹ️";
-    const body = md.utils.escapeHtml(contentLines.join("\n"));
+    let body = contentLines.join("\n");
+
+    // 手动处理 ||...|| 语法（因为 md.render 可能无法正确解析）
+    body = body.replace(/\|\|([^|]+?)\|\|/g, (match, content) => {
+      return `<span title="你知道得太多了" class="p-span-tag">${content}</span>`;
+    });
+
+    // 再调用 md.render 处理其他内联语法（==高亮==、代码等）
+    const renderedBody = md.render(body);
 
     const html = `
-      <div class="m-admonition alerts-${type}">
-        <div class="m-admonition-title">
-          <span class="m-admonition-icon">${icon}</span>
-          <span class="m-admonition-label">${title}</span>
-        </div>
-        <div class="m-admonition-body">${md.renderInline(body)}</div>
+    <div class="m-admonition alerts-${type}">
+      <div class="m-admonition-title">
+        <span class="m-admonition-icon">${icon}</span>
+        <span class="m-admonition-label">${title}</span>
       </div>
-      `;
+      <div class="m-admonition-body">${renderedBody}</div>
+    </div>
+  `;
 
     const token = state.push("html_block", "", 0);
     token.content = html;
@@ -875,7 +934,6 @@ export const markdownConfig = (md, options = {}) => {
     return true;
   });
 
-  // ========== 待办列表支持（core 阶段处理）==========
   // ========== 待办列表（SVG动画复选框）==========
   md.core.ruler.push("task_list", function (state) {
     const Token = state.Token;
@@ -944,7 +1002,7 @@ export const markdownConfig = (md, options = {}) => {
                       <input type="checkbox" class="check" id="${uniqueId}" ${isChecked ? "checked" : ""} disabled />
                       <label for="${uniqueId}" class="label">
                         <svg width="45" height="45" viewBox="0 0 95 95">
-                          <rect x="30" y="20" width="50" height="50" stroke="black" fill="none"></rect>
+                          <rect x="30" y="25" width="50" height="50" stroke="black" fill="none"></rect>
                           <g transform="translate(0,-952.36222)">
                             <path d="m 56,963 c -102,122 6,9 7,9 17,-5 -66,69 -38,52 122,-77 -7,14 18,4 29,-11 45,-43 23,-4" stroke="#cc2323" stroke-width="3" fill="none" class="path1"></path>
                           </g>
