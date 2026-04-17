@@ -18,6 +18,9 @@ return twMerge(clsx(inputs));
 }
 ```
 
+- [ ] 🎉 通常 `Markdown` 解析器自带的基本功能；
+- [x] 🍀 支持**流程图**、**甘特图**、**时序图**、**任务列表**；
+
 # 提示框嵌套内容
 
 > [!NOTE]
@@ -26,8 +29,9 @@ return twMerge(clsx(inputs));
 
 # 待办列表
 
-- [ ] 未完成项
-- [x] 已完成项
+- [ ] 🎉 通常 `Markdown` 解析器==自带的基本功能；==
+- [x] 🏁 ||支持粘贴|| HTML 自动转换为 Markdown；
+- [x] 🦑 支持五线谱、及@Pingan[部分站点](https://example.com)；
 
 # X 卡片
 
@@ -226,7 +230,7 @@ https://pic1.zhimg.com/80/v2-2464893e23ed8c3d2760b446015ef8e8_r.jpg
 
 # 链接
 
-@Pingan[随机头像 API](https://api.multiavatar.com/_随机数.png)
+这是一段文本：@Pingan[随机头像 API](https://api.multiavatar.com/_随机数.png)，后续的内容
 
 # 提示横幅
 

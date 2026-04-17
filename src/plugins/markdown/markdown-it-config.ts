@@ -570,7 +570,6 @@ export const markdownConfig = (md, options = {}) => {
   //   return true;
   // });
   // NOTE 扩展 - 使用 md.render 确保所有语法生效
-  // NOTE 扩展 - 预处理 ||...|| 确保生效
   md.block.ruler.before("blockquote", "admonition", (state, startLine, endLine, silent) => {
     const start = state.bMarks[startLine] + state.tShift[startLine];
     const max = state.eMarks[startLine];
@@ -934,104 +933,75 @@ export const markdownConfig = (md, options = {}) => {
     return true;
   });
 
-  // ========== 待办列表（SVG动画复选框）==========
+  // ========== 待办列表支持==========
   md.core.ruler.push("task_list", function (state) {
     const Token = state.Token;
 
-    // 辅助函数：渲染内联内容为 HTML 字符串
-    function renderInlineChildren(children, options, env) {
-      let html = "";
-      for (let i = 0; i < children.length; i++) {
-        const t = children[i];
-        if (t.type === "text") {
-          html += t.content;
-        } else if (t.type === "strong_open") html += "<strong>";
-        else if (t.type === "strong_close") html += "</strong>";
-        else if (t.type === "em_open") html += "<em>";
-        else if (t.type === "em_close") html += "</em>";
-        else if (t.type === "code_inline") html += `<code>${t.content}</code>`;
-        else if (t.type === "link_open") {
-          const href = t.attrGet("href");
-          html += `<a href="${href}" target="_blank">`;
-        } else if (t.type === "link_close") html += "</a>";
-        else if (t.type === "html_inline") html += t.content;
-        else if (t.children) html += renderInlineChildren(t.children, options, env);
-        else html += t.content || "";
-      }
-      return html;
-    }
-
-    function walkTokens(tokens) {
+    function processListItems(tokens) {
       for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i];
         if (token.type === "list_item_open") {
-          // 查找对应的 inline token
+          // 查找当前列表项中的 inline token 和可能的 paragraph 包裹
           let inlineToken = null;
-          let j = i + 1;
-          while (j < tokens.length && tokens[j].type !== "list_item_close") {
-            if (tokens[j].type === "inline") {
-              inlineToken = tokens[j];
+          let inlineIdx = -1;
+          let paraOpenIdx = -1;
+          let paraCloseIdx = -1;
+
+          for (let j = i + 1; j < tokens.length && tokens[j].type !== "list_item_close"; j++) {
+            const t = tokens[j];
+            if (t.type === "paragraph_open") paraOpenIdx = j;
+            if (t.type === "paragraph_close") paraCloseIdx = j;
+            if (t.type === "inline") {
+              inlineToken = t;
+              inlineIdx = j;
               break;
             }
-            j++;
           }
 
-          if (inlineToken && inlineToken.children) {
+          if (inlineToken && inlineToken.children && inlineToken.children.length > 0) {
             const firstChild = inlineToken.children[0];
             if (firstChild && firstChild.type === "text") {
-              const text = firstChild.content;
-              const match = text.match(/^\[([ xX])\]\s+/);
+              const match = firstChild.content.match(/^\[([ xX])\]\s+/);
               if (match) {
                 const isChecked = match[1].toLowerCase() === "x";
-                // 移除标记前缀
-                firstChild.content = text.substring(match[0].length);
+                // 移除标记
+                firstChild.content = firstChild.content.substring(match[0].length);
 
-                // 渲染剩余内容（支持内联格式）
-                const innerHtml = renderInlineChildren(
-                  inlineToken.children,
-                  state.md.options,
-                  state.env,
-                );
-
-                // 生成唯一 ID
+                // 生成唯一ID
                 const uniqueId = "task_" + Math.random().toString(36).substr(2, 8);
 
-                // 构建 checkbox-wrapper 结构
-                const checkboxHtml = `
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" class="check" id="${uniqueId}" ${isChecked ? "checked" : ""} disabled />
-                      <label for="${uniqueId}" class="label">
-                        <svg width="45" height="45" viewBox="0 0 95 95">
-                          <rect x="30" y="25" width="50" height="50" stroke="black" fill="none"></rect>
-                          <g transform="translate(0,-952.36222)">
-                            <path d="m 56,963 c -102,122 6,9 7,9 17,-5 -66,69 -38,52 122,-77 -7,14 18,4 29,-11 45,-43 23,-4" stroke="#cc2323" stroke-width="3" fill="none" class="path1"></path>
-                          </g>
-                        </svg>
-                        <span>${innerHtml}</span>
-                      </label>
-                    </div>`;
+                // 创建复选框的 html_inline token（开始和结束）
+                const checkboxOpen = new Token("html_inline", "", 0);
+                checkboxOpen.content = `<span class="checkbox-wrapper"><input type="checkbox" class="check" id="${uniqueId}" ${isChecked ? "checked" : ""} disabled /><label for="${uniqueId}" class="label"><svg width="24" height="24" viewBox="0 0 95 95"><rect x="30" y="25" width="50" height="50" stroke="black" fill="none"></rect><g transform="translate(0,-952.36222)"><path d="m 56,963 c -102,122 6,9 7,9 17,-5 -66,69 -38,52 122,-77 -7,14 18,4 29,-11 45,-43 23,-4" stroke="#cc2323" stroke-width="3" fill="none" class="path1"></path></g></svg><span>`;
+                const checkboxClose = new Token("html_inline", "", 0);
+                checkboxClose.content = `</span></label></span>`;
 
-                // 将 inline token 替换为 html_block token
-                const htmlToken = new Token("html_block", "", 0);
-                htmlToken.content = checkboxHtml;
-                const inlineIdx = tokens.findIndex((t) => t === inlineToken);
-                if (inlineIdx !== -1) {
-                  tokens.splice(inlineIdx, 1, htmlToken);
+                // 将复选框的 html_inline token 插入到原有 children 的开头和结尾
+                inlineToken.children = [checkboxOpen, ...inlineToken.children, checkboxClose];
+
+                // 删除包裹的 paragraph 标签（如果存在）
+                if (paraOpenIdx !== -1 && paraCloseIdx !== -1) {
+                  tokens[paraOpenIdx] = null;
+                  tokens[paraCloseIdx] = null;
                 }
 
-                // 给 li 添加一个 class，便于样式调整
+                // 给 li 添加 class
                 token.attrJoin("class", "task-list-item");
               }
             }
           }
         }
         if (token.children) {
-          walkTokens(token.children);
+          processListItems(token.children);
         }
+      }
+      // 清理被标记为 null 的 token
+      for (let i = tokens.length - 1; i >= 0; i--) {
+        if (tokens[i] === null) tokens.splice(i, 1);
       }
     }
 
-    walkTokens(state.tokens);
+    processListItems(state.tokens);
   });
 
   // 隐藏语法 将规则提升到最高优先级（在 text 规则之前）
