@@ -34,6 +34,17 @@ export async function initHighlighter() {
           "c#",
           "text",
           "python",
+          "tsx",
+          "jsx",
+          "java",
+          "c++",
+          "cpp",
+          "less",
+          "sass",
+          "php",
+          "angular-html",
+          "angular-ts",
+          "go",
         ],
       });
       return highlighter;

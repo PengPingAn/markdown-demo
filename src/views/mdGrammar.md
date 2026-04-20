@@ -1,10 +1,10 @@
-```tsx main.ts
+```go main.go
 import type { ClassValue } from "clsx";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+return twMerge(clsx(inputs));
 }
 ```
 
@@ -89,7 +89,7 @@ return twMerge(clsx(inputs));
 
 # 代码块
 
-```ts main.ts
+```ts
 <script setup lang="ts">
 const route = useRoute()
 const albumIdParam = computed(() => route.params.id as string)

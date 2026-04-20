@@ -43,19 +43,21 @@ export function useMarkdown() {
       let highlightedCode = "";
       try {
         const highlighter = getHighlighterSync();
-        if (baseLang && baseLang !== "text") {
-          const theme = "vitesse-light"; // 可根据需要调整
-          highlightedCode = highlighter.codeToHtml(code, { lang: baseLang, theme });
-          highlightedCode = highlightedCode.replace(
-            /<pre(\s|>)/,
-            `<pre data-language="${baseLang}" data-filename="${fileName || ""}"$1`,
-          );
-        } else {
-          highlightedCode = `<pre><code>${escapeHtml(code)}</code></pre>`;
-        }
+
+        // if (baseLang && baseLang !== "text") {
+        const theme = "vitesse-light"; // 可根据需要调整
+        highlightedCode = highlighter.codeToHtml(code, { lang: baseLang, theme });
+        highlightedCode = highlightedCode.replace(
+          /<pre(\s|>)/,
+          `<pre data-language="${baseLang}" data-filename="${fileName || ""}"$1`,
+        );
+        // } else {
+        //   highlightedCode = `<pre class='shiki'><code>${escapeHtml(code)}</code></pre>`;
+        // }
       } catch (e) {
+        console.log(baseLang);
         console.error("Shiki highlighting failed:", e);
-        highlightedCode = `<pre><code>${escapeHtml(code)}</code></pre>`;
+        highlightedCode = `<pre class='shiki'><code>${escapeHtml(code)}</code></pre>`;
       }
 
       if (fileName && fileName.trim() !== "") {
