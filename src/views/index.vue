@@ -6,7 +6,7 @@
     </div>
 
     <div class="two-column-layout">
-      <div class="markdown-content-wrapper">
+      <div class="markdown-content-wrapper" ref="componentRef">
         <MarkdownRenderer :source="markdownText" @toc-updated="handleTocUpdate" />
       </div>
 
@@ -41,6 +41,7 @@
                 </li>
               </ul>
             </div>
+
             <div class="toc-mask toc-mask-top" :class="{ visible: showTopMask }"></div>
             <div
               class="toc-mask toc-mask-bottom"
@@ -48,6 +49,27 @@
             ></div>
           </div>
         </div>
+        <div class="flex items-center gap-2 m-[5px]">
+          <AnimatedCircularProgressBar
+            :max="100"
+            :min="0"
+            :value="scrollPercentage"
+            :showPercentage="false"
+            :circleStrokeWidth="13"
+            :gaugePrimaryColor="'#acacac'"
+          />
+          <span style="color: #aeafaf; font-size: 13px">{{ scrollPercentage }}%</span>
+        </div>
+        <Transition name="fade-slide">
+          <div
+            v-show="visible"
+            class="back-top flex text-[#94a3b8] items-center gap-1 text-[10px] cursor-pointer"
+            @click="scrollToTop"
+          >
+            <span class="octicon--move-to-top-16"></span>
+            <span>回到顶部</span>
+          </div>
+        </Transition>
       </aside>
     </div>
   </div>
@@ -57,6 +79,7 @@
 import { ref, onMounted, onUnmounted, nextTick, computed, watchEffect } from "vue";
 import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import EmptyState from "@/components/EmptyState.vue";
+import AnimatedCircularProgressBar from "@/components/AnimatedCircularProgressBar.vue";
 import mdGrammar from "./mdGrammar.md?raw";
 import md2 from "./md2.md?raw";
 import md3 from "./md3.md?raw";
@@ -70,6 +93,8 @@ const showTopMask = ref(false);
 const showBottomMask = ref(false);
 const indicatorRef = ref<HTMLElement | null>(null);
 const itemRefs = ref<(HTMLElement | null)[]>([]);
+const componentRef = ref(null); // 组件根元素的引用
+const scrollPercentage = ref<Number>(0);
 
 const setItemRef = (el: any, index: number) => {
   if (el) itemRefs.value[index] = el;
@@ -336,11 +361,56 @@ const onTocScroll = () => {
   updateIndicatorPosition();
 };
 
+const calculateScrollPercentage = () => {
+  if (!componentRef.value) return;
+
+  const component = componentRef.value;
+  const componentRect = component.getBoundingClientRect();
+  const windowHeight = window.innerHeight;
+  const componentHeight = componentRect.height;
+
+  // 计算组件在视口中的可见部分
+  const visibleStart = Math.max(0, -componentRect.top);
+  const visibleEnd = Math.min(componentHeight, windowHeight - componentRect.top);
+  const visibleHeight = Math.max(0, visibleEnd - visibleStart);
+
+  // 计算滚动百分比 (0% = 组件顶部刚进入视口，100% = 组件底部刚离开视口)
+  const maxScroll = componentHeight - visibleHeight;
+  scrollPercentage.value =
+    maxScroll > 0 && isFinite(visibleStart)
+      ? Math.min(100, Math.round((visibleStart / maxScroll) * 100))
+      : 0;
+};
+
 const onResize = () => refresh();
+
+const visible = ref(false);
+
+/** 节流（简单版） */
+let but_ticking = false;
+
+const handleScroll = () => {
+  if (!but_ticking) {
+    window.requestAnimationFrame(() => {
+      visible.value = window.scrollY > 1000;
+      but_ticking = false;
+    });
+    but_ticking = true;
+  }
+};
+
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+};
 
 onMounted(() => {
   window.addEventListener("scroll", onWindowScroll, { passive: true });
   window.addEventListener("resize", onResize);
+  window.addEventListener("scroll", calculateScrollPercentage);
+  window.addEventListener("scroll", handleScroll);
   refresh();
   updateStickyTop();
   nextTick(() => {
@@ -354,6 +424,8 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("scroll", onWindowScroll);
   window.removeEventListener("resize", onResize);
+  window.removeEventListener("scroll", calculateScrollPercentage);
+  window.removeEventListener("scroll", handleScroll);
   if (scrollTimer) clearTimeout(scrollTimer);
   if (tocScrollTimer) clearTimeout(tocScrollTimer);
   if (manualScrollReleaseTimer) clearTimeout(manualScrollReleaseTimer);
@@ -366,7 +438,7 @@ onUnmounted(() => {
 <style lang="css" scoped>
 /* 样式与上一版本完全相同，此处省略以保持简洁，请复制上一版本的样式 */
 .markdown-page {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
 }
@@ -544,6 +616,62 @@ onUnmounted(() => {
   .toc-scroll-container {
     max-height: 260px;
   }
+}
+.octicon--move-to-top-16 {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+
+  background-color: #999;
+
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='black' d='M3 2.25a.75.75 0 0 1 .75-.75h8.5a.75.75 0 0 1 0 1.5h-8.5A.75.75 0 0 1 3 2.25m5.53 2.97l3.75 3.75a.749.749 0 1 1-1.06 1.06L8.75 7.561v6.689a.75.75 0 0 1-1.5 0V7.561L4.78 10.03a.749.749 0 1 1-1.06-1.06l3.75-3.75a.75.75 0 0 1 1.06 0'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='black' d='M3 2.25a.75.75 0 0 1 .75-.75h8.5a.75.75 0 0 1 0 1.5h-8.5A.75.75 0 0 1 3 2.25m5.53 2.97l3.75 3.75a.749.749 0 1 1-1.06 1.06L8.75 7.561v6.689a.75.75 0 0 1-1.5 0V7.561L4.78 10.03a.749.749 0 1 1-1.06-1.06l3.75-3.75a.75.75 0 0 1 1.06 0'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+
+  /* ✨ 关键：多属性过渡 */
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+/* 父级过渡 */
+.flex {
+  transition: color 0.2s ease;
+}
+
+/* hover 效果 */
+.flex:hover .octicon--move-to-top-16 {
+  background-color: #3a3b3b;
+  transform: translateY(-1px) scale(1.05); /* ✨ 微动效 */
+}
+
+.flex:hover {
+  color: #000;
+}
+.flex:active .octicon--move-to-top-16 {
+  transform: translateY(0) scale(0.95);
+}
+
+/* 进入前 / 离开后 */
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* 进入后 / 离开前 */
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 过渡过程 */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>
 
