@@ -1,48 +1,40 @@
 <template>
-  <!-- <div class="wider md-preview-container">
-    <h3 class="mb-3 flex items-center gap-2 text-base font-medium leading-tight">
-      <span class="streamline-ultimate-color--notes-paper-text"></span>
-      拾要
-    </h3>
-
-    <div
-      class="space-y-2 text-xs leading-relaxed text-base-content/80 md-view"
-      style="max-width: 100%; position: relative"
-    >
-      {{ abstract }}
-    </div>
-  </div> -->
-
   <div class="paper-card-wrapper">
-    <!-- 双纸堆叠容器 -->
     <div class="card-stack">
-      <!-- 底层纸张（第二张纸，叠在下方） -->
       <div class="paper-back"></div>
 
-      <!-- 上层主卡片（带折角） -->
       <div class="paper-front">
-        <!-- 折角区域的阴影和高光增强真实感 -->
+        <!-- 折角装饰 -->
         <div class="fold-shadow"></div>
         <div class="fold-highlight"></div>
         <div class="crease-effect"></div>
 
-        <div><h2>这是一个标题</h2></div>
+        <div class="column-badge">
+          <span>近·况</span>
+        </div>
 
+        <!-- ************ 卡片头部：标题 + 元数据 ************ -->
+        <div class="card-header">
+          <h2 class="card-title">这是一个标题</h2>
+          <div class="card-meta">
+            <span class="meta-item"> <span class="meta-icon">👁️</span> 1.2k 浏览 </span>
+            <span class="meta-item"> <span class="meta-icon">📅</span> 2026-04-21 </span>
+            <!-- 可继续添加其他元数据，如标签、分类等 -->
+          </div>
+        </div>
+
+        <!-- 拾要区域 -->
         <div class="wider md-preview-container">
-          <h3 class="mb-3 flex items-center gap-2 text-base font-medium leading-tight">
+          <h3 class="abstract-title">
             <span class="streamline-ultimate-color--notes-paper-text"></span>
             拾要
           </h3>
-
-          <div
-            class="space-y-2 text-xs leading-relaxed text-base-content/80 md-view"
-            style="max-width: 100%; position: relative"
-          >
+          <div class="abstract-content md-view">
             {{ abstract }}
           </div>
         </div>
 
-        <!-- Markdown 渲染内容区 -->
+        <!-- Markdown 正文 -->
         <MarkdownRenderer :source="props.content" @toc-updated="handleTocUpdate" />
       </div>
     </div>
@@ -88,14 +80,22 @@ const handleTocUpdate = (toc) => {
     var(--main-gradient-color, rgba(255, 105, 180, 0.2)) 100%
   );
   /* 🔧 修改下面三行 */
-  margin-left: -2rem; /* 原无此属性，新增 */
-  margin-right: -2rem; /* 原无此属性，新增 */
-  padding: 1.5rem 2rem; /* 原为 1.5rem 1rem，将左右内边距改为 2rem */
-  margin-top: -2rem;
+  /* margin-left: -2rem;
+  margin-right: -2rem; */
+  padding: 1.5rem 2rem;
+  /* margin-top: -2rem; */
   transition: all 0.3s ease;
-  z-index: 1; /* 原为 -1，改为 1 避免被其他元素遮挡 */
+  z-index: 1;
   box-sizing: border-box;
-  max-width: none; /* 原为 100%，改为 none 允许超出 */
+  max-width: none;
+  font-size: 0.75rem;
+  transform: skewX(-3deg);
+  transform-origin: left bottom; /* 从左侧底部开始倾斜，保持左侧边缘对齐 */
+  margin-left: -1rem; /* 微调位置，抵消倾斜后左侧可能出现的空白 */
+  margin-right: -1rem; /* 右侧同理 */
+}
+.wider > * {
+  transform: skewX(3deg);
 }
 .md-preview-container {
   overflow-x: auto;
@@ -142,6 +142,7 @@ const handleTocUpdate = (toc) => {
   justify-content: center;
   font-family: "Segoe UI", "Roboto", "Merriweather", Georgia, "Times New Roman", serif;
   margin: 0;
+  max-width: 1000px;
 }
 
 /* 卡片堆叠容器 */
@@ -329,7 +330,88 @@ const handleTocUpdate = (toc) => {
   box-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
-/* 内容区域样式保持原样（略） */
+/* ========= 卡片头部 ========= */
+.card-header {
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid rgba(180, 160, 135, 0.2);
+}
+
+.card-title {
+  font-size: 1.9rem;
+  font-weight: 500;
+  font-family: "Merriweather", "Georgia", "Times New Roman", serif;
+  color: #2c2418;
+  letter-spacing: -0.3px;
+  line-height: 1.3;
+  margin: 1rem 0 0.5rem 0;
+  word-break: break-word;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.2rem;
+  font-size: 0.8rem;
+  color: #7b6e5a;
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.meta-icon {
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+/* 可选：添加一个简洁的标签 */
+.meta-tag {
+  background: rgba(200, 175, 145, 0.15);
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  color: #6e5b47;
+  font-size: 0.7rem;
+  letter-spacing: 0.3px;
+}
+
+/* 响应式微调 */
+@media (max-width: 560px) {
+  .card-title {
+    font-size: 1.6rem;
+  }
+  .card-meta {
+    gap: 0.8rem;
+  }
+}
+
+/* 专栏标志 —— 左上角丝带标签 */
+.column-badge {
+  position: absolute;
+  top: 10px;
+  left: -6px;
+  z-index: 10;
+  padding: 4px 16px 4px 12px;
+  background: #f77f7f; /* 复古牛皮纸色，可换成你喜欢的颜色 */
+  color: #fefaf5;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.08);
+  transform: rotate(-2deg);
+  border-radius: 0 2px 2px 0;
+  /* 丝带尾部的三角折痕效果 */
+  clip-path: polygon(0% 0%, 100% 0%, 90% 50%, 100% 100%, 0% 100%);
+}
+
+.column-badge span {
+  display: inline-block;
+  transform: rotate(2deg); /* 抵消父级旋转，让文字保持水平 */
+}
 
 /* 响应式调整 */
 @media (max-width: 560px) {
@@ -362,15 +444,6 @@ const handleTocUpdate = (toc) => {
     padding: 1.5rem 1.5rem;
   }
 }
-
-/* 悬停时微微浮起 */
-/* .card-stack:hover .paper-front {
-  box-shadow: 0 12px 26px rgba(60, 50, 40, 0.08), 0 2px 5px rgba(40, 30, 20, 0.02);
-  transform: translateY(-1px);
-}
-.card-stack:hover .paper-back {
-  transform: rotate(-0.2deg) translate(1px, 2px);
-} */
 
 /* 滚动条样式（保留） */
 .markdown-body pre::-webkit-scrollbar {

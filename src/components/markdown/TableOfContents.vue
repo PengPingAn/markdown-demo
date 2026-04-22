@@ -433,9 +433,9 @@ onUnmounted(() => {
   position: relative;
   transition: box-shadow 0.2s;
 }
-.toc-card:hover {
+/* .toc-card:hover {
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
-}
+} */
 .toc-divider {
   height: 2px;
   background: linear-gradient(90deg, #3b82f6 0%, #e2e8f0 80%);
@@ -506,7 +506,6 @@ onUnmounted(() => {
 }
 .toc-link:hover {
   color: #2563eb;
-  background: rgba(59, 130, 246, 0.08);
   transform: translateX(2px);
 }
 .toc-active {
@@ -516,7 +515,7 @@ onUnmounted(() => {
   border-left-color: #3b82f6;
 }
 .toc-active .toc-link {
-  color: #1e40af;
+  color: oklch(54.6% 0.245 262.881);
   font-weight: 500;
 }
 .toc-active.toc-active-first {
