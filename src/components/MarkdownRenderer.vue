@@ -153,7 +153,18 @@ const addHeadingIds = () => {
  * 渲染 Markdown 内容并更新 DOM
  */
 const renderContent = async (source: string) => {
-  renderedContent.value = await render(source);
+  try {
+    console.log("[renderContent] 开始渲染，源长度:", source.length);
+    const result = await render(source);
+    console.log("[renderContent] 渲染完成，结果长度:", result.length);
+    renderedContent.value = result;
+    if (!result) {
+      console.warn("[renderContent] 渲染结果为空字符串");
+    }
+  } catch (e) {
+    console.error("[renderContent] 渲染失败:", e);
+    renderedContent.value = '<p style="color:red">渲染出错，请检查控制台</p>';
+  }
 };
 
 /**

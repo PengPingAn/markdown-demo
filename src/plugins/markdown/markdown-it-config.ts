@@ -9,12 +9,12 @@ import svgAlError from "../../assets/svg/alerts-error.svg?raw";
 import svgAlNote from "../../assets/svg/alerts-note.svg?raw";
 import svgDownLine from "../../assets/svg/down-line.svg?raw";
 import svgFlip from "../../assets/svg/flip.svg?raw";
-import React from "react";
-import { createRoot } from "react-dom/client";
-import { Excalidraw } from "@excalidraw/excalidraw";
+// import React from "react";
+// import { createRoot } from "react-dom/client";
+// import { Excalidraw } from "@excalidraw/excalidraw";
 import { useEditorThemeStore } from "../../stores/pinia";
 // 用于记录已挂载实例，避免重复渲染
-const excalidrawInstances: Record<string, boolean> = {};
+// const excalidrawInstances: Record<string, boolean> = {};
 
 // ----------------------------
 // 自定义语法插件
@@ -81,96 +81,96 @@ export const markdownConfig = (md, options = {}) => {
   });
 
   // 这里添加 excalidraw 块语法
-  md.block.ruler.before("fence", "excalidraw", (state, startLine, endLine, silent) => {
-    const start = state.bMarks[startLine] + state.tShift[startLine];
-    const max = state.eMarks[startLine];
-    const line = state.src.slice(start, max).trim();
+  // md.block.ruler.before("fence", "excalidraw", (state, startLine, endLine, silent) => {
+  //   const start = state.bMarks[startLine] + state.tShift[startLine];
+  //   const max = state.eMarks[startLine];
+  //   const line = state.src.slice(start, max).trim();
 
-    if (!line.startsWith(":::excalidraw")) return false;
-    if (silent) return true;
+  //   if (!line.startsWith(":::excalidraw")) return false;
+  //   if (silent) return true;
 
-    let nextLine = startLine + 1;
-    while (nextLine < endLine) {
-      const lineText = state.src
-        .slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine])
-        .trim();
-      if (lineText === ":::") break;
-      nextLine++;
-    }
+  //   let nextLine = startLine + 1;
+  //   while (nextLine < endLine) {
+  //     const lineText = state.src
+  //       .slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine])
+  //       .trim();
+  //     if (lineText === ":::") break;
+  //     nextLine++;
+  //   }
 
-    // 生成唯一 ID
-    const excalidrawId = "excalidraw-" + Math.random().toString(36).slice(2);
+  //   // 生成唯一 ID
+  //   const excalidrawId = "excalidraw-" + Math.random().toString(36).slice(2);
 
-    // 在 Markdown HTML token 里输出容器
-    const token = state.push("html_block", "", 0);
-    token.content = `<div class="md-excalidraw" id="${excalidrawId}" style="height:510px;"></div>`;
+  //   // 在 Markdown HTML token 里输出容器
+  //   const token = state.push("html_block", "", 0);
+  //   token.content = `<div class="md-excalidraw" id="${excalidrawId}" style="height:510px;"></div>`;
 
-    // 等 DOM 渲染完成后挂载 React
-    setTimeout(() => {
-      const el = document.getElementById(excalidrawId);
-      if (el && !excalidrawInstances[excalidrawId]) {
-        const root = createRoot(el);
+  //   // 等 DOM 渲染完成后挂载 React
+  //   setTimeout(() => {
+  //     const el = document.getElementById(excalidrawId);
+  //     if (el && !excalidrawInstances[excalidrawId]) {
+  //       const root = createRoot(el);
 
-        // 获取 markdown 中的内容
-        const contentLines = [];
-        for (let i = startLine + 1; i < nextLine; i++) {
-          const lineStart = state.bMarks[i] + state.tShift[i];
-          const lineEnd = state.eMarks[i];
-          contentLines.push(state.src.slice(lineStart, lineEnd));
-        }
-        const contentStr = contentLines.join("\n");
+  //       // 获取 markdown 中的内容
+  //       const contentLines = [];
+  //       for (let i = startLine + 1; i < nextLine; i++) {
+  //         const lineStart = state.bMarks[i] + state.tShift[i];
+  //         const lineEnd = state.eMarks[i];
+  //         contentLines.push(state.src.slice(lineStart, lineEnd));
+  //       }
+  //       const contentStr = contentLines.join("\n");
 
-        let excalidrawData = null;
-        try {
-          excalidrawData = JSON.parse(contentStr);
-        } catch (e) {
-          console.error("Excalidraw JSON parse error:", e);
-        }
+  //       let excalidrawData = null;
+  //       try {
+  //         excalidrawData = JSON.parse(contentStr);
+  //       } catch (e) {
+  //         console.error("Excalidraw JSON parse error:", e);
+  //       }
 
-        if (excalidrawData) {
-          const containerWidth = el.clientWidth;
-          const containerHeight = el.clientHeight;
-          const originalWidth = excalidrawData.originalWidth || 1200;
-          const originalHeight = excalidrawData.originalHeight || 800;
+  //       if (excalidrawData) {
+  //         const containerWidth = el.clientWidth;
+  //         const containerHeight = el.clientHeight;
+  //         const originalWidth = excalidrawData.originalWidth || 1200;
+  //         const originalHeight = excalidrawData.originalHeight || 800;
 
-          // 缩放比例
-          const scaleX = containerWidth / originalWidth;
-          const scaleY = containerHeight / originalHeight;
-          const scale = Math.min(scaleX, scaleY);
+  //         // 缩放比例
+  //         const scaleX = containerWidth / originalWidth;
+  //         const scaleY = containerHeight / originalHeight;
+  //         const scale = Math.min(scaleX, scaleY);
 
-          // 居中偏移
-          const offsetX = (containerWidth - originalWidth * scale) / 2;
-          const offsetY = (containerHeight - originalHeight * scale) / 2;
+  //         // 居中偏移
+  //         const offsetX = (containerWidth - originalWidth * scale) / 2;
+  //         const offsetY = (containerHeight - originalHeight * scale) / 2;
 
-          const smallData = {
-            ...excalidrawData,
-            appState: {
-              ...excalidrawData.appState,
-              zoom: scale,
-              offsetLeft: offsetX,
-              offsetTop: offsetY,
-            },
-          };
+  //         const smallData = {
+  //           ...excalidrawData,
+  //           appState: {
+  //             ...excalidrawData.appState,
+  //             zoom: scale,
+  //             offsetLeft: offsetX,
+  //             offsetTop: offsetY,
+  //           },
+  //         };
 
-          const userStore = useEditorThemeStore();
-          root.render(
-            React.createElement(Excalidraw, {
-              initialData: smallData,
-              readOnly: true,
-              zenModeEnabled: true,
-              viewModeEnabled: true,
-              langCode: "zh-CN",
-              theme: userStore.$state.editorTheme,
-            }),
-          );
-          excalidrawInstances[excalidrawId] = true;
-        }
-      }
-    }, 0);
+  //         const userStore = useEditorThemeStore();
+  //         root.render(
+  //           React.createElement(Excalidraw, {
+  //             initialData: smallData,
+  //             readOnly: true,
+  //             zenModeEnabled: true,
+  //             viewModeEnabled: true,
+  //             langCode: "zh-CN",
+  //             theme: userStore.$state.editorTheme,
+  //           }),
+  //         );
+  //         excalidrawInstances[excalidrawId] = true;
+  //       }
+  //     }
+  //   }, 0);
 
-    state.line = nextLine + 1;
-    return true;
-  });
+  //   state.line = nextLine + 1;
+  //   return true;
+  // });
 
   // 1. 注册块级规则
   md.block.ruler.before("fence", "admonition", (state, startLine) => {
